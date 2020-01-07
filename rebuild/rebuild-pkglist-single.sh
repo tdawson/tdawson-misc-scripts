@@ -50,11 +50,12 @@ fi
     
     rm -f /var/lib/mock/${MOCK_CONF}/result/*{debuginfo,debugsource}*.rpm
     mv /var/lib/mock/${MOCK_CONF}/result/*.src.rpm ${OUTPUT_DIR}/${LIST_NAME}/source/Packages/
-    ln -f /var/lib/mock/${MOCK_CONF}/result/*.rpm ${LOCAL_REPO_DIR}/${LIST_NAME}-Packages/
+    cp -f /var/lib/mock/${MOCK_CONF}/result/*.rpm ${LOCAL_REPO_DIR}/${LIST_NAME}-Packages/
     mv /var/lib/mock/${MOCK_CONF}/result/*.rpm ${OUTPUT_DIR}/${LIST_NAME}/os/Packages/
     #ln -f ${OUTPUT_DIR}/${LIST_NAME}/source/Packages/*.rpm ${LOCAL_REPO_DIR}/source/${LIST_NAME}-SRPMS/
     #createrepo --update ${LOCAL_REPO_DIR}/source/
-    createrepo --update -g local-build-comps.xml ${LOCAL_REPO_DIR}/
+    # createrepo --update -g local-build-comps.xml ${LOCAL_REPO_DIR}/
+    createrepo --update ${LOCAL_REPO_DIR}/
   else
     echo "  FAILURE"
     echo "    Unable to build: ${package}"
