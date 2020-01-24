@@ -121,7 +121,17 @@ do
     echo "  ${package}"
   fi
   if [ "${DO_DEPS}" == "TRUE" ] ; then
-    dnf --enablerepo=rawhide-source repoquery --qf="%{name}" list  $(dnf --enablerepo=rawhide-source  repoquery --srpm --qf="%{sourcerpm}" --requires --resolve ${package} 2>/dev/null | sed "s/.rpm$//") >> deps/${package} 2>/dev/null
+    source_requires="$(dnf --enablerepo=rawhide-source  repoquery --srpm --qf="%{name}" --requires --resolve ${package} 2>/dev/null)"
+		if [ "${source_requires}" == "" ] ; then
+		  touch deps/${package}
+		else
+		  # Find - the name of - the source rpms of - the packages needed to build - the source rpm of ${package}
+		  dnf --enablerepo=rawhide-source repoquery --qf="%{name}" list  $(dnf --enablerepo=rawhide-source  repoquery --srpm --qf="%{sourcerpm}" --requires --resolve ${package} 2>/dev/null | sed "s/.rpm$//") >> deps/${package} 2>/dev/null
+      # Find - the name of - the source rpms of - the packages needed to install - the packages needed to build - the source rpm of ${package}
+		  dnf --enablerepo=rawhide-source repoquery --qf="%{name}" list  $(dnf --enablerepo=rawhide-source  repoquery --qf="%{sourcerpm}" --requires --resolve ${source_requires} 2>/dev/null | sed "s/.rpm$//" ) >> deps/${package} 2>/dev/null
+		  # sort and remove duplicates
+		  sort -u -o deps/${package} deps/${package}
+		fi
   fi
   if [ "${NEW_ORDER}" == "TRUE" ] ; then
     echo "${BUFFER}" >> order/${package}

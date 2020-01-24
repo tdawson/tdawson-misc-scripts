@@ -8,6 +8,7 @@ SAVELOGS="FALSE"
 NOCLEAN="FALSE"
 # make sure there is a file /etc/mock/${MOCK_CONF}.conf
 MOCK_CONF="local-8-${ARCH}"
+MOCK_DIR="${MOCK_DIR}"
 WORK_DIR="${HOME}/rebuild/work"
 OUTPUT_DIR="${HOME}/rebuild/output"
 LOCAL_REPO_DIR="${HOME}/rebuild/repos/local/${ARCH}"
@@ -111,6 +112,9 @@ if [ "${DISTRO}" == "rawhide" ] ; then
 else
   ALT_SOURCE_REPO="${DISTRO}-updates-source"
 fi
+if grep -q basedir /etc/mock/${MOCK_CONF}.cfg 2>/dev/null ; then
+  MOCK_DIR="$(grep basedir /etc/mock/${MOCK_CONF}.cfg | awk '{print $3}' | sed 's|'\''||g')"
+fi
 
 ###############
 # Setup
@@ -147,7 +151,7 @@ do
   if [ "${NOCLEAN}" == "TRUE" ] ; then
     mock -r ${MOCK_CONF} --no-clean --rebuild ${this_src_rpm}
   else
-    mock -r ${MOCK_CONF} --no-clean --rebuild ${this_src_rpm}
+    mock -r ${MOCK_CONF} --rebuild ${this_src_rpm}
   fi
   if [ $? -eq 0 ] ; then
     echo "  SUCCESS: ${package}"
@@ -158,15 +162,15 @@ do
     sed -i "/^${package}$/d" ${QUEUE_FILE}
     
     if ! [ "${NOREPO}" == "TRUE" ] ; then
-      rm -f /var/lib/mock/${MOCK_CONF}/result/*{debuginfo,debugsource}*.rpm
-      mv /var/lib/mock/${MOCK_CONF}/result/*.src.rpm ${OUTPUT_DIR}/${LIST_NAME}/source/Packages/
-      cp -f /var/lib/mock/${MOCK_CONF}/result/*.rpm ${LOCAL_REPO_DIR}/${LIST_NAME}-Packages/
-      mv /var/lib/mock/${MOCK_CONF}/result/*.rpm ${OUTPUT_DIR}/${LIST_NAME}/os/Packages/
+      rm -f ${MOCK_DIR}${MOCK_CONF}/result/*{debuginfo,debugsource}*.rpm
+      mv ${MOCK_DIR}${MOCK_CONF}/result/*.src.rpm ${OUTPUT_DIR}/${LIST_NAME}/source/Packages/
+      cp -f ${MOCK_DIR}${MOCK_CONF}/result/*.rpm ${LOCAL_REPO_DIR}/${LIST_NAME}-Packages/
+      mv ${MOCK_DIR}${MOCK_CONF}/result/*.rpm ${OUTPUT_DIR}/${LIST_NAME}/os/Packages/
       createrepo --update ${LOCAL_REPO_DIR}/
     fi
     if [ "${SAVELOGS}" == "TRUE" ] ; then
       mkdir -p ${LOG_DIR}/success/${package}
-      cp -f /var/lib/mock/${MOCK_CONF}/result/*log ${LOG_DIR}/success/${package}
+      cp -f ${MOCK_DIR}${MOCK_CONF}/result/*log ${LOG_DIR}/success/${package}
     fi
   else
     echo "  FAILURE"
@@ -174,7 +178,7 @@ do
     echo "    Unable to build: ${package}" >> ${WORK_LOG}
     if [ "${SAVELOGS}" == "TRUE" ] ; then
       mkdir -p ${LOG_DIR}/failure/${package}
-      cp -f /var/lib/mock/${MOCK_CONF}/result/*log ${LOG_DIR}/failure/${package}
+      cp -f ${MOCK_DIR}${MOCK_CONF}/result/*log ${LOG_DIR}/failure/${package}
     fi
     if ! [ "${NONSTOP}" == "TRUE" ] ; then
       exit 5
