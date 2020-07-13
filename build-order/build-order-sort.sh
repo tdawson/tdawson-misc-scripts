@@ -147,12 +147,12 @@ if [ "${DO_ORDER}" == "TRUE" ] ; then
   do
     echo "Doing a layer of ordering builds"
     # Do a layer of ordering
-    for package in $(cat kde.list)
+    for package in $(cat ${DATAFILE})
     do
       let this_order_num=$(cat order/$package)
       for build_source in $(cat deps/$package)
       do
-        if grep -q ^${build_source}$ kde.list ; then
+        if grep -q ^${build_source}$ ${DATAFILE} ; then
           let source_order_num=$(cat order/$build_source)
           if [ $this_order_num -le $source_order_num ] ; then
             let this_order_num=$source_order_num+2
