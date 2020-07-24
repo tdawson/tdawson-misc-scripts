@@ -1,0 +1,35 @@
+[main]
+cachedir=/tmp/cache/centos-ppc64le
+
+[wii-AppStream]
+name=CentOS 8 AppStream
+mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=AppStream&infra=$infra
+enabled=1
+gpgcheck=0
+
+[wii-BaseOS]
+name=CentOS 8 BaseOS
+mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=BaseOS&infra=$infra
+enabled=1
+gpgcheck=0
+
+[wii-PowerTools]
+name=CentOS 8 PowerTools
+mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=PowerTools&infra=$infra
+enabled=1
+gpgcheck=0
+
+
+[wii-epel]
+name=EPEL 8
+baseurl=https://download.fedoraproject.org/pub/epel/$releasever/Everything/$basearch
+enabled=1
+gpgcheck=0
+
+
+[wii-epel-modular]
+name=EPEL 8 Modular 
+metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-modular-source-$releasever&arch=$basearch&infra=$infra&content=$contentdir
+enabled=0
+gpgcheck=0
+

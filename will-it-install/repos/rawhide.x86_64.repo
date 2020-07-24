@@ -1,0 +1,27 @@
+[main]
+cachedir=/tmp/cache/rawhide-x86_64
+
+[wii-main]
+name=Fedora Rawhide
+baseurl=https://kojipkgs.fedoraproject.org/compose/rawhide/latest-Fedora-Rawhide/compose/Everything/$basearch/os/
+enabled=1
+gpgcheck=0
+
+[wii-main-source]
+name=Fedora Rawhide - Source
+baseurl=https://kojipkgs.fedoraproject.org/compose/rawhide/latest-Fedora-Rawhide/compose/Everything/source/tree/
+enabled=0
+gpgcheck=0
+
+[wii-modular]
+name=Fedora Modular 
+metalink=https://mirrors.fedoraproject.org/metalink?repo=fedora-modular-$releasever&arch=$basearch
+enabled=0
+gpgcheck=0
+
+
+[wii-modular-source]
+name=Fedora Modular - Source
+metalink=https://mirrors.fedoraproject.org/metalink?repo=fedora-modular-source-$releasever&arch=$basearch
+enabled=0
+gpgcheck=0

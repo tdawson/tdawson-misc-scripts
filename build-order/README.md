@@ -17,3 +17,15 @@ is wrong.
 * build-order-sort.sh --no-new-deps kde.list
 ** Clear out the build order, and attempts to set the build orders.
 
+## Other things
+If you want a quick list, after you've done above do
+
+cd order
+let BUFFER=2
+let ORDER=2
+while [ $ORDER -le 14 ]
+do
+  grep -l ^$ORDER$ * >> ../package.build.order.txt
+  let ORDER=$ORDER+$BUFFER
+done
+cd ..
