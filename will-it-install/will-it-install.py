@@ -55,13 +55,14 @@ print(arch + ": Working on Packages")
 for this_binary in listQueue:
   #print('.', end='')
   #print('.', end='', flush=True)
-  print(arch + ":   " + this_binary)
+  #print(arch + ":   " + this_binary)
   base.reset(goal='true')
   ## See if we can attempt to install
   try:
     base.install(this_binary)
   except dnf.exceptions.MarkingError as e:
-    print(arch + ":     Cannot Find Package: " + this_binary)
+    print('')
+    print(arch + ":  " + this_binary + " - Cannot Find Package")
     print(e)
     fileNoInstall=open(outputDir + "errors/NotFound", "a+")
     fileNoInstall.write(this_binary + "\n")
@@ -73,7 +74,8 @@ for this_binary in listQueue:
       ## We were successful fake installing, use this information
   ## We could not install all the BuildRequires, let us know somehow
   except dnf.exceptions.DepsolveError as e:
-      print(arch + ": No Resolution for" + this_binary)
+      print('')
+      print(arch + ":  " + this_binary + " - Cannot install due to dependencies")
       print(e)
       fileBadDeps=open(outputDir + "errors/" + this_binary + "-BadDeps", "a+")
       fileBadDeps.write("===============================\n")
