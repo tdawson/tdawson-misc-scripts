@@ -36,17 +36,34 @@ pushd ${TMP_DIR}
 npm pack ${PACKAGE}
 tar xfz *.tgz
 cd package
+echo " Downloading prod dependencies"
 npm install --no-optional --only=prod
+if [ $? -ge 1 ] ; then
+  echo "    ERROR WILL ROBINSON"
+	rm -rf node_modules
+else
+  echo "    Successful prod dependences download"
+	mv node_modules/ node_modules_prod
+fi
 # FIND SOMEWHERE TO PUT LICENSES
 # FOR NOW JUST PRINT THEM OUT
 echo "LICENSES IN BUNDLE:"
 find . -name "package.json" -exec jq .license {} \; | sort -u
-mv node_modules/ node_modules_prod
+echo " Downloading dev dependencies"
 npm install --no-optional --only=dev
-mv node_modules/ node_modules_dev
-tar cfz ../${PACKAGE}-${VERSION}-nm-prod.tgz node_modules_prod
-tar cfz ../${PACKAGE}-${VERSION}-nm-dev.tgz node_modules_dev
+if [ $? -ge 1 ] ; then
+  echo "    ERROR WILL ROBINSON"
+else
+  echo "    Successful dev dependences download"
+	mv node_modules/ node_modules_dev
+fi
+if [ -d node_modules_prod ] ; then
+  tar cfz ../${PACKAGE}-${VERSION}-nm-prod.tgz node_modules_prod
+fi
+if [ -d node_modules_dev ] ; then
+  tar cfz ../${PACKAGE}-${VERSION}-nm-dev.tgz node_modules_dev
+fi
 cd ..
 cp ${PACKAGE}-${VERSION}* $HOME/rpmbuild/SOURCES
-popd
+popd > /dev/null
 rm -rf ${TMP_DIR}
