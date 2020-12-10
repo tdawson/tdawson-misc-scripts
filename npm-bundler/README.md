@@ -5,6 +5,10 @@ Then downloads the dev (build-time) modules for it, in node_modules_dev
 It then tars up the two directories, into seperate tarballs.
 All three tarballs are copied to the users rpmbuild Source directory.
 
+== How to run
+ ./npm-bundler.sh <npm_name> [version]
+
+
 == Usage in a rpm spec file
 Currently, this is how you use this in a rpm spec file.
 
