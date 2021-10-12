@@ -1,0 +1,100 @@
+<html>
+  <head>
+    <title>Will It {{ repo['reponame']  }} Status</title>
+    <style>
+      table {
+        border-spacing: 0;
+      }
+      th, td {
+        text-align: center;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+  <h1>{{ repo['reponame']  }} Repo Status</h1>
+    <p>Page updated: {{ this_date }}</p>
+    <table border=1>
+      <tr>
+        <td rowspan="3">{{ repo['reponame']  }}</td>
+        <td colspan="2">Total</td>
+        <td colspan="2">Install</td>
+        <td colspan="2">Build</td>
+      </tr>
+      <tr>
+        <td>Source</td>
+        <td>Binary</td>
+        <td colspan="2" bgcolor="{{ repo['ci_bcolor'] }}">Binary</td>
+        <td colspan="2" bgcolor="{{ repo['cb_scolor'] }}">Source</td>
+      </tr>
+      <tr>
+        <td>{{ repo['snumber'] }}</td>
+        <td>{{ repo['bnumber'] }}</td>
+        <td>{{ repo['ci_bnumber_good'] }}</td>
+        <td>{{ repo['ci_bnumber_bad'] }}</td>
+        <td>{{ repo['cb_snumber_good'] }}</td>
+        <td>{{ repo['cb_snumber_bad'] }}</td>
+      </tr>
+    </table>
+
+      {% if repo['test_install'] == 'True' %}
+        <h2>Install Failures</h2>
+
+        {% for bb in badInstall -%}
+          <p>Package: {{ bb['bnvr'] }}
+          <br>Error: {{ bb['error'] }}
+          </p>
+        {% endfor -%}
+
+      {% endif %}
+
+      {% if repo['test_build'] == 'True' %}
+      <h2>Build Failures</h2>      
+      {% endif %}
+      
+      {% if repo['test_checked'] == 'True' %}
+
+  <h1>{{ repo['reponame']  }}-testing Repo Status</h1>
+    <table border=1>
+      <tr>
+        <td rowspan="3">{{ repo['reponame']  }}-testing</td>
+        <td colspan="2">Total</td>
+        <td colspan="2">Install</td>
+        <td colspan="2">Build</td>
+      </tr>
+      <tr>
+        <td>Source</td>
+        <td>Binary</td>
+        <td colspan="2" bgcolor="{{ repo['test_ci_bcolor'] }}">Binary</td>
+        <td colspan="2" bgcolor="{{ repo['test_cb_scolor'] }}">Source</td>
+      </tr>
+      <tr>
+        <td>{{ repo['test_snumber'] }}</td>
+        <td>{{ repo['test_bnumber'] }}</td>
+        <td>{{ repo['test_ci_bnumber_good'] }}</td>
+        <td>{{ repo['test_ci_bnumber_bad'] }}</td>
+        <td>{{ repo['test_cb_snumber_good'] }}</td>
+        <td>{{ repo['test_cb_snumber_bad'] }}</td>
+      </tr>
+    </table>
+      {% if repo['test_install'] == 'True' %}
+        <h2>Install Failures</h2>
+
+        {% for bb in testBadInstall -%}
+          <p>Package: {{ bb['bnvr'] }}
+          <br>Error: {{ bb['error'] }}
+          </p>
+        {% endfor -%}
+
+      {% endif %}
+
+      {% if repo['test_build'] == 'True' %}
+      <h2>Build Failures</h2>      
+      {% endif %}
+      
+      {% if repo['test_checked'] == 'True' %}
+      {% endif %}
+    {% endif %}
+
+  </body>
+</html>

@@ -1,0 +1,70 @@
+<html>
+  <head>
+    <title>Will It Overall Status</title>
+    <style>
+      table {
+        border-spacing: 0;
+      }
+      th, td {
+        text-align: center;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+  <h1>Overall Repo Status</h1>
+    <p>Page updated: {{ this_date }}</p>
+    <br>
+    
+  {% for r in repos -%}
+    <h1><a href="{{ r['reponame']  }}/status-repo.html">{{ r['reponame']  }}</a></h1>
+    <table border=1>
+      <tr>
+        <td rowspan="3">{{ r['reponame']  }}</td>
+        <td colspan="2">Total</td>
+        <td colspan="2">Install</td>
+        <td colspan="4">Build</td>
+      </tr>
+      <tr>
+        <td>Source</td>
+        <td>Binary</td>
+        <td colspan="2" bgcolor="{{ r['ci_bcolor'] }}">Binary</td>
+        <td colspan="2" bgcolor="{{ r['cb_scolor'] }}">Source</td>
+      </tr>
+      <tr>
+        <td>{{ r['snumber'] }}</td>
+        <td>{{ r['bnumber'] }}</td>
+        <td>{{ r['ci_bnumber_good'] }}</td>
+        <td>{{ r['ci_bnumber_bad'] }}</td>
+        <td>{{ r['cb_snumber_good'] }}</td>
+        <td>{{ r['cb_snumber_bad'] }}</td>
+      </tr>
+      
+      {% if r['test_checked'] == 'True' %}
+      <tr>
+        <td rowspan="3">{{ r['reponame']  }}-testing</td>
+        <td colspan="2">Total</td>
+        <td colspan="2">Install</td>
+        <td colspan="2">Build</td>
+      </tr>
+      <tr>
+        <td>Source</td>
+        <td>Binary</td>
+        <td colspan="2" bgcolor="{{ r['test_ci_bcolor'] }}">Binary</td>
+        <td colspan="2" bgcolor="{{ r['test_cb_scolor'] }}">Source</td>
+      </tr>
+      <tr>
+        <td>{{ r['test_snumber'] }}</td>
+        <td>{{ r['test_bnumber'] }}</td>
+        <td>{{ r['test_ci_bnumber_good'] }}</td>
+        <td>{{ r['test_ci_bnumber_bad'] }}</td>
+        <td>{{ r['test_cb_snumber_good'] }}</td>
+        <td>{{ r['test_cb_snumber_bad'] }}</td>
+      </tr>
+      {% endif %}
+    </table>
+
+  {% endfor -%}
+
+  </body>
+</html>
