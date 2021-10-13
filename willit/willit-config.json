@@ -4,7 +4,7 @@
       "RepoName": "epel7",
       "RepoURL": "https://dl.fedoraproject.org/pub/epel/7/x86_64/",
       "CheckTest": "True",
-      "CheckInstall": "False",
+      "CheckInstall": "True",
       "CheckBuild": "False",
       "TestRepoURL": "https://dl.fedoraproject.org/pub/epel/testing/7/x86_64/",
       "OtherRepos": 
@@ -21,7 +21,7 @@
       "RepoName": "epel8",
       "RepoURL": "https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/",
       "CheckTest": "True",
-      "CheckInstall": "False",
+      "CheckInstall": "True",
       "CheckBuild": "False",
       "TestRepoURL": "https://dl.fedoraproject.org/pub/epel/testing/8/Everything/x86_64/",
       "OtherRepos": 
