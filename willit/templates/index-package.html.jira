@@ -1,0 +1,19 @@
+<html>
+  <head>
+    <title>{{ repoName  }} Packages</title>
+  </head>
+  <body>
+  <h1>{{ repoName  }} Packages</h1>
+    <p>
+      <a href="status-repo.html">Repo Status</a> - 
+      <a href="../status-overall.html">Overall Status</a>
+      <br>Page updated: {{ this_date }}
+    </p>
+
+    <ul>
+        {% for pkg in spkgList -%}
+          <li><a href="{{ pkgDir }}/{{ pkg }}.html">{{ pkg }}</a></li>
+        {% endfor -%}
+    </ul>
+  </body>
+</html>

@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 import datetime
 import dnf
+import glob
 import json
+import os
 
 from jinja2 import Template
 from pathlib import Path
@@ -82,6 +84,7 @@ for this_repo in input_config['repos']:
       this_spkg_list[sourcename]['binaries'].append(this_binary)
     else:
       this_source = {}
+      this_source['sname'] = sourcename
       this_source['snvr'] = sourcenvr
       this_source['binaries'] = [this_binary]
       this_source['bad_install'] = []
@@ -153,7 +156,7 @@ for this_repo in input_config['repos']:
     print(len(this_bpkg_list))
 
     ## Set the source rpms out of the binary package list
-    print("  Generating source package list ... ", end='')
+    print("  Generating testing source package list ... ", end='')
     for bpkg in this_bpkg_list:
       binarynvr = bpkg.name+"-"+bpkg.evr
       sourcenvr = bpkg.sourcerpm.rsplit(".",2)[0]
@@ -165,8 +168,11 @@ for this_repo in input_config['repos']:
         test_this_spkg_list[sourcename]['binaries'].append(this_binary)
       else:
         this_source = {}
+        this_source['sname'] = sourcename
         this_source['snvr'] = sourcenvr
         this_source['binaries'] = [this_binary]
+        this_source['bad_install'] = []
+        this_source['bad_build'] = []
         test_this_spkg_list[sourcename] = this_source
     print(len(test_this_spkg_list))
 
@@ -231,6 +237,9 @@ for this_repo in input_config['repos']:
   # Work with data
   mainList.append(this_overall)
   Path("output/" + this_repo['RepoName'] + "/packages").mkdir(parents=True, exist_ok=True)
+  Path("output/" + this_repo['RepoName'] + "/testing-packages").mkdir(parents=True, exist_ok=True)
+  for pf in glob.glob("output/" + this_repo['RepoName'] + "/*packages/*.html"):
+    os.remove(pf)
   with open('templates/status-repo.html.jira') as f:
     tmpl = Template(f.read())
   with open('output/' + this_repo['RepoName'] + '/status-repo.html', 'w') as w:
@@ -241,8 +250,48 @@ for this_repo in input_config['repos']:
       testBadInstall=test_ci_bad_binary,
       testBadBuild=test_cb_bad_builds,
       repo=this_overall))
+  with open('templates/index-package.html.jira') as f:
+    iptmpl = Template(f.read())
+  with open('output/' + this_repo['RepoName'] + '/index-packages.html', 'w') as w:
+    w.write(iptmpl.render(
+      this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
+      repoName=this_repo['RepoName'],
+      pkgDir="packages",
+      spkgList=this_spkg_list.keys()))
+  if this_repo['CheckTest'] == "True":
+    with open('output/' + this_repo['RepoName'] + '/index-test-packages.html', 'w') as w:
+      w.write(iptmpl.render(
+        this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
+        repoName=this_repo['RepoName'] + "testing",
+        pkgDir="testing-packages",
+        spkgList=test_this_spkg_list.keys()))
+  with open('templates/status-package.html.jira') as f:
+    ptmpl = Template(f.read())
+  for spkg in this_spkg_list.values() :
+    with open('output/' + this_repo['RepoName'] + '/packages/' + spkg['sname'] + '.html', 'w') as w:
+      w.write(ptmpl.render(
+        this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
+        repoName=this_repo['RepoName'],
+        pkgName=spkg['sname'],
+        sNVR=spkg['snvr'],
+        binaries=spkg['binaries'],
+        binstall=spkg['bad_install'],
+        bbuild=spkg['bad_build']))
+  if this_repo['CheckTest'] == "True":
+    for spkg in test_this_spkg_list.values() :
+      with open('output/' + this_repo['RepoName'] + '/testing-packages/' + spkg['sname'] + '.html', 'w') as w:
+        w.write(ptmpl.render(
+          this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
+          repoName=this_repo['RepoName'],
+          pkgName=spkg['sname'],
+          sNVR=spkg['snvr'],
+          binaries=spkg['binaries'],
+          binstall=spkg['bad_install'],
+          bbuild=spkg['bad_build']))
+    
 
 # Write out Overall Status Page
+Path("output").mkdir(parents=True, exist_ok=True)
 with open('templates/status-overall.html.jira') as f:
   tmpl = Template(f.read())
 with open('output/status-overall.html', 'w') as w:

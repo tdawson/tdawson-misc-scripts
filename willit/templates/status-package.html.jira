@@ -1,0 +1,37 @@
+<html>
+  <head>
+    <title>{{ pkgName  }} Info</title>
+  </head>
+  <body>
+  <h1>{{ pkgName  }} Info</h1>
+    <p>
+      <a href="../status-repo.html">Repo Status</a> - 
+      <a href="../../status-overall.html">Overall Status</a>
+      <br>Page updated: {{ this_date }}
+    </p>
+
+    <p>
+      Source NVR: {{ sNVR  }}
+      <br>Repo: {{ repoName  }}
+    </p>
+
+    <h2>Binary Packages</h2>
+    <table border=0>
+      {% for bp in binaries -%}
+        <tr>
+          <td>{{ bp['bname'] }}</td>
+          <td>{{ bp['bnvr'] }}</td>
+        </tr>
+      {% endfor -%}
+    </table>
+
+    <h2>Install Failures</h2>
+      {% for bi in binstall -%}
+        <p>
+          Package: {{ bi['bnvr'] }}
+          <br>Error: {{ bi['error'] }}
+        </p>
+      {% endfor -%}
+
+  </body>
+</html>

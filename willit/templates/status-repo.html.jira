@@ -13,7 +13,12 @@
   </head>
   <body>
   <h1>{{ repo['reponame']  }} Repo Status</h1>
-    <p>Page updated: {{ this_date }}</p>
+    <p>
+      <a href="../status-overall.html">Overall Status</a>
+      <br>Page updated: {{ this_date }}
+    </p>
+  <h2>{{ repo['reponame']  }}</h2>
+  <p><a href="index-packages.html">{{ repo['reponame']  }} Packages</a></p>
     <table border=1>
       <tr>
         <td rowspan="3">{{ repo['reponame']  }}</td>
@@ -41,7 +46,7 @@
         <h2>Install Failures</h2>
 
         {% for bb in badInstall -%}
-          <p>Package: {{ bb['bnvr'] }}
+          <p>Package: <a href="packages/{{ bb['sname'] }}.html">{{ bb['bnvr'] }}</a>
           <br>Error: {{ bb['error'] }}
           </p>
         {% endfor -%}
@@ -54,7 +59,8 @@
       
       {% if repo['test_checked'] == 'True' %}
 
-  <h1>{{ repo['reponame']  }}-testing Repo Status</h1>
+  <h2>{{ repo['reponame']  }}-testing</h2>
+  <p><a href="index-test-packages.html">{{ repo['reponame']  }}-testing Packages</a></p>
     <table border=1>
       <tr>
         <td rowspan="3">{{ repo['reponame']  }}-testing</td>
@@ -81,7 +87,7 @@
         <h2>Install Failures</h2>
 
         {% for bb in testBadInstall -%}
-          <p>Package: {{ bb['bnvr'] }}
+          <p>Package: <a href="testing-packages/{{ bb['sname'] }}.html">{{ bb['bnvr'] }}</a>
           <br>Error: {{ bb['error'] }}
           </p>
         {% endfor -%}
