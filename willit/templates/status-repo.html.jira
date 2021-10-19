@@ -18,7 +18,6 @@
       <br>Page updated: {{ this_date }}
     </p>
   <h2>{{ repo['reponame']  }}</h2>
-  <p><a href="index-packages.html">{{ repo['reponame']  }} Packages</a></p>
     <table border=1>
       <tr>
         <td rowspan="3">{{ repo['reponame']  }}</td>
@@ -41,26 +40,18 @@
         <td>{{ repo['cb_snumber_bad'] }}</td>
       </tr>
     </table>
-
+  <p>
+    <br><a href="index-packages.html">{{ repo['reponame']  }} Packages</a> ({{ thisNum  }})
       {% if repo['test_install'] == 'True' %}
-        <h2>Install Failures</h2>
-
-        {% for bb in badInstall -%}
-          <p>Package: <a href="packages/{{ bb['sname'] }}.html">{{ bb['bnvr'] }}</a>
-          <br>Error: {{ bb['error'] }}
-          </p>
-        {% endfor -%}
-
+    <br><a href="status-wont-install.html">{{ repo['reponame']  }} Packages that will not install</a> ( {{ badInstallNum  }} )
       {% endif %}
-
       {% if repo['test_build'] == 'True' %}
-      <h2>Build Failures</h2>      
+    <br><a href="status-wont-build.html">{{ repo['reponame']  }} Packages that will not build</a> ( {{ badBuildNum  }} )
       {% endif %}
-      
+  </p>
       {% if repo['test_checked'] == 'True' %}
 
   <h2>{{ repo['reponame']  }}-testing</h2>
-  <p><a href="index-test-packages.html">{{ repo['reponame']  }}-testing Packages</a></p>
     <table border=1>
       <tr>
         <td rowspan="3">{{ repo['reponame']  }}-testing</td>
@@ -83,23 +74,15 @@
         <td>{{ repo['test_cb_snumber_bad'] }}</td>
       </tr>
     </table>
+  <p>
+    <br><a href="index-packages.html">{{ repo['reponame']  }} Packages</a> ({{ thisTestNum  }})
       {% if repo['test_install'] == 'True' %}
-        <h2>Install Failures</h2>
-
-        {% for bb in testBadInstall -%}
-          <p>Package: <a href="testing-packages/{{ bb['sname'] }}.html">{{ bb['bnvr'] }}</a>
-          <br>Error: {{ bb['error'] }}
-          </p>
-        {% endfor -%}
-
+    <br><a href="status-wont-install.html">{{ repo['reponame']  }} Packages that will not install</a> ( {{ testBadInstallNum  }} )
       {% endif %}
-
       {% if repo['test_build'] == 'True' %}
-      <h2>Build Failures</h2>      
+    <br><a href="status-wont-build.html">{{ repo['reponame']  }} Packages that will not build</a> ( {{ testBadBuildNum  }} )
       {% endif %}
-      
-      {% if repo['test_checked'] == 'True' %}
-      {% endif %}
+  </p>
     {% endif %}
 
   </body>

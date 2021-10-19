@@ -21,45 +21,69 @@
     <table border=1>
       <tr>
         <td rowspan="3">{{ r['reponame']  }}</td>
-        <td colspan="2">Total</td>
-        <td colspan="2">Install</td>
-        <td colspan="4">Build</td>
+        <td colspan="2"><a href="{{ r['reponame']  }}/index-packages.html">Total</a></td>
+      {% if r['test_install'] == 'True' %}
+        <td colspan="2"><a href="{{ r['reponame']  }}/status-wont-install.html">Install</a></td>
+      {% endif %}
+      {% if r['test_build'] == 'True' %}
+        <td colspan="4"><a href="{{ r['reponame']  }}/status-wont-build.html">Build</a></td>
+      {% endif %}
       </tr>
       <tr>
         <td>Source</td>
         <td>Binary</td>
+      {% if r['test_install'] == 'True' %}
         <td colspan="2" bgcolor="{{ r['ci_bcolor'] }}">Binary</td>
+      {% endif %}
+      {% if r['test_build'] == 'True' %}
         <td colspan="2" bgcolor="{{ r['cb_scolor'] }}">Source</td>
+      {% endif %}
       </tr>
       <tr>
         <td>{{ r['snumber'] }}</td>
         <td>{{ r['bnumber'] }}</td>
+      {% if r['test_install'] == 'True' %}
         <td>{{ r['ci_bnumber_good'] }}</td>
         <td>{{ r['ci_bnumber_bad'] }}</td>
+      {% endif %}
+      {% if r['test_build'] == 'True' %}
         <td>{{ r['cb_snumber_good'] }}</td>
         <td>{{ r['cb_snumber_bad'] }}</td>
+      {% endif %}
       </tr>
       
       {% if r['test_checked'] == 'True' %}
       <tr>
         <td rowspan="3">{{ r['reponame']  }}-testing</td>
         <td colspan="2">Total</td>
+      {% if r['test_install'] == 'True' %}
         <td colspan="2">Install</td>
+      {% endif %}
+      {% if r['test_build'] == 'True' %}
         <td colspan="2">Build</td>
+      {% endif %}
       </tr>
       <tr>
         <td>Source</td>
         <td>Binary</td>
+      {% if r['test_install'] == 'True' %}
         <td colspan="2" bgcolor="{{ r['test_ci_bcolor'] }}">Binary</td>
+      {% endif %}
+      {% if r['test_build'] == 'True' %}
         <td colspan="2" bgcolor="{{ r['test_cb_scolor'] }}">Source</td>
+      {% endif %}
       </tr>
       <tr>
         <td>{{ r['test_snumber'] }}</td>
         <td>{{ r['test_bnumber'] }}</td>
+      {% if r['test_install'] == 'True' %}
         <td>{{ r['test_ci_bnumber_good'] }}</td>
         <td>{{ r['test_ci_bnumber_bad'] }}</td>
+      {% endif %}
+      {% if r['test_build'] == 'True' %}
         <td>{{ r['test_cb_snumber_good'] }}</td>
         <td>{{ r['test_cb_snumber_bad'] }}</td>
+      {% endif %}
       </tr>
       {% endif %}
     </table>
