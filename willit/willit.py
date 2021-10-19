@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import concurrent.futures
 import datetime
 import dnf
 import glob
@@ -40,6 +41,31 @@ def get_base(style, repo_info):
       this_base.repos.add_new_repo(other_repo['OtherRepoName'], conf, baseurl=[other_repo['OtherRepoURL']])
   return this_base
 
+# Will the pkg install using the corresponding repos
+def will_pkg_install(pkg, style, repo_info):
+  this_status = {"status": "pass", "error": ""}
+  with dnf.Base() as base:
+    conf = base.conf
+    conf.cachedir = "/var/tmp/willit-dnf-cache-" + repo_info['RepoName']
+    conf.installroot = installroot
+    if style == "main":
+      base.repos.add_new_repo(repo_info['RepoName'], conf, baseurl=[repo_info['RepoURL']])
+      for other_repo in repo_info['OtherRepos']:
+        base.repos.add_new_repo(other_repo['OtherRepoName'], conf, baseurl=[other_repo['OtherRepoURL']])
+    elif style == "testing":
+      base.repos.add_new_repo(repo_info['RepoName'], conf, baseurl=[repo_info['RepoURL']])
+      base.repos.add_new_repo(repo_info['RepoName'] + "testing", conf, baseurl=[repo_info['TestRepoURL']])
+      for other_repo in repo_info['OtherRepos']:
+        base.repos.add_new_repo(other_repo['OtherRepoName'], conf, baseurl=[other_repo['OtherRepoURL']])
+    base.fill_sack(load_system_repo=False)
+    base.install(pkg)
+    try:
+      base.resolve()
+    except dnf.exceptions.DepsolveError as e:
+      this_status['status'] = "fail"
+      this_status['error'] = e
+  return this_status
+
 with open('willit-config.json') as json_file:
   input_config = json.load(json_file)
     
@@ -64,11 +90,13 @@ for this_repo in input_config['repos']:
   
   ## Gather a list of all binary packages in main repo.
   print("  Gathering binary packages in repo ... ", end='')
-  base = get_base("main", this_repo)
-  base.fill_sack(load_system_repo=False)
-  query = base.sack.query().available()
-  this_bpkg_list = query.run()
-  base.close()
+  with dnf.Base() as base:
+    conf = base.conf
+    conf.cachedir = "/var/tmp/willit-dnf-cache-" + this_repo['RepoName']
+    base.repos.add_new_repo(this_repo['RepoName'], conf, baseurl=[this_repo['RepoURL']])
+    base.fill_sack(load_system_repo=False)
+    query = base.sack.query().available()
+    this_bpkg_list = query.run()
   print(len(this_bpkg_list))
   
   ## Get the source rpms out of the binary package list
@@ -100,12 +128,11 @@ for this_repo in input_config['repos']:
     this_overall["test_install"] = "True"
     print("  Starting CheckInstall")
     for bpkg in this_bpkg_list:
-      base = get_base("main-all", this_repo)
-      base.fill_sack(load_system_repo=False)
-      base.install(bpkg.name)
-      try:
-        base.resolve()
-      except dnf.exceptions.DepsolveError as e:
+      #print(".", end='')
+      with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:
+        bpkg_status = executor.submit(will_pkg_install, bpkg.name, "main", this_repo).result()
+      #bpkg_status = will_pkg_install(bpkg.name, "main", this_repo)
+      if bpkg_status['status'] == "fail":
         binarynvr = bpkg.name + "-" + bpkg.evr
         sourcenvr = bpkg.sourcerpm.rsplit(".",2)[0]
         sourcename = sourcenvr.rsplit("-",2)[0]
@@ -113,12 +140,12 @@ for this_repo in input_config['repos']:
         bbinary['bname'] = bpkg.name
         bbinary['bnvr'] = binarynvr
         bbinary['sname'] = sourcename
-        bbinary['error'] = e
+        bbinary['error'] = bpkg_status['error']
         ci_bad_binary.append(bbinary)
         this_spkg_list[sourcename]['bad_install'].append(bbinary)
         print("    Wont Install: " + binarynvr)
-      base.close()
         
+    print("      Failed Installs: " + str(len(ci_bad_binary)))
     this_overall["ci_bnumber_good"] = this_overall["bnumber"] - len(ci_bad_binary)
     this_overall["ci_bnumber_bad"] = len(ci_bad_binary)
     if len(ci_bad_binary) > 0:
@@ -149,10 +176,13 @@ for this_repo in input_config['repos']:
     this_overall["test_checked"] = "True"
     ## Gather a list of all binary packages in testing repo.
     print("  Gathering binary packages in testing repo ... ", end='')
-    base = get_base("testing", this_repo)
-    base.fill_sack(load_system_repo=False)
-    query = base.sack.query().available()
-    this_bpkg_list = query.run()
+    with dnf.Base() as base:
+      conf = base.conf
+      conf.cachedir = "/var/tmp/willit-dnf-cache-" + this_repo['RepoName']
+      base.repos.add_new_repo(this_repo['RepoName'] + "testing", conf, baseurl=[this_repo['TestRepoURL']])
+      base.fill_sack(load_system_repo=False)
+      query = base.sack.query().available()
+      this_bpkg_list = query.run()
     print(len(this_bpkg_list))
 
     ## Set the source rpms out of the binary package list
@@ -183,12 +213,11 @@ for this_repo in input_config['repos']:
     if this_repo['CheckInstall'] == "True":
       print("  Starting CheckInstall")
       for bpkg in this_bpkg_list:
-        base = get_base("testing-all", this_repo)
-        base.fill_sack(load_system_repo=False)
-        base.install(bpkg.name)
-        try:
-          base.resolve()
-        except dnf.exceptions.DepsolveError as e:
+        #print(".", end='')
+        with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:
+          bpkg_status = executor.submit(will_pkg_install, bpkg.name, "testing", this_repo).result()
+        #bpkg_status = will_pkg_install(bpkg.name, "testing", this_repo)
+        if bpkg_status['status'] == "fail":
           binarynvr = bpkg.name + "-" + bpkg.evr
           sourcenvr = bpkg.sourcerpm.rsplit(".",2)[0]
           sourcename = sourcenvr.rsplit("-",2)[0]
@@ -196,12 +225,12 @@ for this_repo in input_config['repos']:
           bbinary['bname'] = bpkg.name
           bbinary['bnvr'] = binarynvr
           bbinary['sname'] = sourcename
-          bbinary['error'] = e
+          bbinary['error'] = bpkg_status['error']
           test_ci_bad_binary.append(bbinary)
           test_this_spkg_list[sourcename]['bad_install'].append(bbinary)
           print("    Wont Install: " + binarynvr)
-        base.close()
           
+      print("      Failed Installs: " + str(len(test_ci_bad_binary)))
       this_overall["test_ci_bnumber_good"] = this_overall["test_bnumber"] - len(test_ci_bad_binary)
       this_overall["test_ci_bnumber_bad"] = len(test_ci_bad_binary)
       if len(test_ci_bad_binary) > 0:
@@ -240,15 +269,31 @@ for this_repo in input_config['repos']:
   Path("output/" + this_repo['RepoName'] + "/testing-packages").mkdir(parents=True, exist_ok=True)
   for pf in glob.glob("output/" + this_repo['RepoName'] + "/*packages/*.html"):
     os.remove(pf)
+  with open('templates/status-wont-install.html.jira') as f:
+    witmpl = Template(f.read())
+  with open('output/' + this_repo['RepoName'] + '/status-wont-install.html', 'w') as w:
+    w.write(witmpl.render(
+      this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
+      badInstall=ci_bad_binary,
+      badInstallNum=len(ci_bad_binary),
+      testBadInstall=test_ci_bad_binary,
+      testBadInstallNum=len(test_ci_bad_binary),
+      repo=this_overall))
   with open('templates/status-repo.html.jira') as f:
     tmpl = Template(f.read())
   with open('output/' + this_repo['RepoName'] + '/status-repo.html', 'w') as w:
     w.write(tmpl.render(
       this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
       badInstall=ci_bad_binary,
+      badInstallNum=len(ci_bad_binary),
       badBuild=cb_bad_builds,
+      badBuildNum=len(cb_bad_builds),
       testBadInstall=test_ci_bad_binary,
+      testBadInstallNum=len(test_ci_bad_binary),
       testBadBuild=test_cb_bad_builds,
+      testBadBuildNum=len(test_cb_bad_builds),
+      thisNum=len(this_spkg_list),
+      thisTestNum=len(test_this_spkg_list),
       repo=this_overall))
   with open('templates/index-package.html.jira') as f:
     iptmpl = Template(f.read())
