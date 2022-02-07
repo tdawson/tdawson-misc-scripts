@@ -1,0 +1,32 @@
+{"distros":
+  [
+    {
+      "DistroName": "cs9",
+      "Check": "True",
+      "WhichKoji": "stream",
+      "RepoList": 
+        [
+          {"RepoName": "appstream", 
+            "RepoURL": "https://composes.stream.centos.org/production/latest-CentOS-Stream/compose/AppStream/x86_64/os/"},
+          {"RepoName": "baseos", 
+            "RepoURL": "https://composes.stream.centos.org/production/latest-CentOS-Stream/compose/BaseOS/x86_64/os/"},
+          {"RepoName": "crb", 
+            "RepoURL": "https://composes.stream.centos.org/production/latest-CentOS-Stream/compose/CRB/x86_64/os/"}          
+        ]
+    },
+    {
+      "DistroName": "rhel8",
+      "Check": "False",
+      "WhichKoji": "brew",
+      "RepoList": 
+        [
+          {"RepoName": "appstream", 
+            "RepoURL": "http://mirror.centos.org/centos-8/8/AppStream/x86_64/os/"},
+          {"RepoName": "baseos", 
+            "RepoURL": "http://mirror.centos.org/centos-8/8/BaseOS/x86_64/os/"},
+          {"RepoName": "crb", 
+            "RepoURL": "http://mirror.centos.org/centos-8/8/PowerTools/x86_64/os/"}          
+        ]
+    }
+  ]
+}
