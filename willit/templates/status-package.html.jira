@@ -25,6 +25,17 @@
       {% endfor -%}
     </table>
 
+    <h2>Bugs</h2>
+    <table border=0>
+      {% for bp in bugz -%}
+        <tr>
+          <td><a href="https://bugzilla.redhat.com/show_bug.cgi?id={{ bp['id'] }}">{{ bp['id'] }}</a></td>
+          <td>{{ bp['status'] }}</td>
+          <td>{{ bp['summary'] }}</td>
+        </tr>
+      {% endfor -%}
+    </table>
+
     <h2>Install Failures</h2>
       {% for bi in binstall -%}
         <p>

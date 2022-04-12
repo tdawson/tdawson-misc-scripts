@@ -3,6 +3,7 @@
     {
       "RepoName": "epel9",
       "RepoURL": "https://dl.fedoraproject.org/pub/epel/9/Everything/x86_64/",
+      "CheckBugz": "True",
       "CheckTest": "True",
       "CheckInstall": "True",
       "CheckBuild": "False",
@@ -20,6 +21,7 @@
     {
       "RepoName": "epel9-next",
       "RepoURL": "https://dl.fedoraproject.org/pub/epel/next/9/Everything/x86_64/",
+      "CheckBugz": "False",
       "CheckTest": "True",
       "CheckInstall": "True",
       "CheckBuild": "False",
@@ -39,6 +41,7 @@
     {
       "RepoName": "epel8",
       "RepoURL": "https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/",
+      "CheckBugz": "True",
       "CheckTest": "True",
       "CheckInstall": "True",
       "CheckBuild": "False",
@@ -56,6 +59,7 @@
     {
       "RepoName": "epel8-next",
       "RepoURL": "https://dl.fedoraproject.org/pub/epel/next/8/Everything/x86_64/",
+      "CheckBugz": "False",
       "CheckTest": "True",
       "CheckInstall": "True",
       "CheckBuild": "False",
@@ -75,6 +79,7 @@
     {
       "RepoName": "epel7",
       "RepoURL": "https://dl.fedoraproject.org/pub/epel/7/x86_64/",
+      "CheckBugz": "True",
       "CheckTest": "True",
       "CheckInstall": "True",
       "CheckBuild": "False",

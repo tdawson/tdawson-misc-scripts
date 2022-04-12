@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import bugzilla
 import concurrent.futures
 import datetime
 import dnf
@@ -67,6 +68,7 @@ def will_pkg_install(pkg, style, repo_info):
       this_status['error'] = e
   return this_status
 
+
 with open('willit-config.json') as json_file:
   input_config = json.load(json_file)
     
@@ -119,11 +121,50 @@ for this_repo in input_config['repos']:
       this_source['binaries'] = [this_binary]
       this_source['bad_install'] = []
       this_source['bad_build'] = []
+      this_source['bugz'] = []
       this_spkg_list[sourcename] = this_source
   print(len(this_spkg_list))
     
   this_overall["bnumber"] = len(this_bpkg_list)
   this_overall["snumber"] = len(this_spkg_list)
+
+  # Check and add open bugzilla bugs
+  if this_repo['CheckBugz'] == "True":
+    this_overall["test_bugz"] = "True"
+    print("  Starting Bug Checking")
+    
+    product="Fedora EPEL"
+    if this_repo['RepoName']=="epel9-next" or this_repo['RepoName']=="epel9":
+      version = "epel9"
+    elif this_repo['RepoName']=="epel8-next" or this_repo['RepoName']=="epel8":
+      version = "epel8"
+    elif this_repo['RepoName']=="epel7":
+      version = "epel7"
+    else:
+      version = None
+      print("    Repo Name not in list, not checking bugz")
+    
+    if version:
+      URL = "bugzilla.redhat.com"
+      bzapi = bugzilla.Bugzilla(URL)
+      query = bzapi.build_query(
+        product=product,
+        version=version,
+        status='__open__')
+      query["limit"] = 1000
+      query["offset"] = 0
+      bugz = bzapi.query(query)
+      for bug in bugz:
+        print("    Bug: {0} {1} {2} {3}".format(bug.id, bug.component, bug.status, bug.summary))
+        this_bug = {}
+        this_bug['id'] = bug.id
+        this_bug['status'] = bug.status
+        this_bug['summary'] = bug.summary
+        if bug.component in this_spkg_list:
+          this_spkg_list[bug.component]['bugz'].append(this_bug)
+          print("      Added")
+  else:
+    this_overall["test_bugz"] = "False"
 
   # Will It Install
   if this_repo['CheckInstall'] == "True":
@@ -323,7 +364,8 @@ for this_repo in input_config['repos']:
         sNVR=spkg['snvr'],
         binaries=spkg['binaries'],
         binstall=spkg['bad_install'],
-        bbuild=spkg['bad_build']))
+        bbuild=spkg['bad_build'],
+        bugz=spkg['bugz']))
   if this_repo['CheckTest'] == "True":
     for spkg in test_this_spkg_list.values() :
       with open('output/' + this_repo['RepoName'] + '/testing-packages/' + spkg['sname'] + '.html', 'w') as w:
