@@ -5,6 +5,7 @@ import dnf
 import glob
 import json
 import os
+import shutil
 
 from jinja2 import Template
 from pathlib import Path
@@ -87,6 +88,7 @@ for this_repo in input_config['repos']:
   test_ci_bad_binary = []
   test_cb_bad_builds = []
   this_overall["reponame"] = this_repo['RepoName']
+  shutil.rmtree("/var/tmp/willit-dnf-cache-" + this_repo['RepoName'], ignore_errors=True)
   
   ## Gather a list of all binary packages in main repo.
   print("  Gathering binary packages in repo ... ", end='')
@@ -327,6 +329,9 @@ for this_repo in input_config['repos']:
       with open('output/' + this_repo['RepoName'] + '/testing-packages/' + spkg['sname'] + '.html', 'w') as w:
         w.write(ptmpl.render(
           this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
+          color_good=color_good,
+          color_bad=color_bad,
+          color_not=color_not,
           repoName=this_repo['RepoName'],
           pkgName=spkg['sname'],
           sNVR=spkg['snvr'],
@@ -342,4 +347,7 @@ with open('templates/status-overall.html.jira') as f:
 with open('output/status-overall.html', 'w') as w:
   w.write(tmpl.render(
     this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
+    color_good=color_good,
+    color_bad=color_bad,
+    color_not=color_not,
     repos=mainList))
