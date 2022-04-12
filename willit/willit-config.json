@@ -46,11 +46,11 @@
       "OtherRepos": 
         [
           {"OtherRepoName": "appstream", 
-            "OtherRepoURL": "http://mirror.centos.org/centos-8/8/AppStream/x86_64/os/"},
+            "OtherRepoURL": "https://repo.almalinux.org/almalinux/8/AppStream/x86_64/os/"},
           {"OtherRepoName": "baseos", 
-            "OtherRepoURL": "http://mirror.centos.org/centos-8/8/BaseOS/x86_64/os/"},
+            "OtherRepoURL": "https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/"},
           {"OtherRepoName": "powertools", 
-            "OtherRepoURL": "http://mirror.centos.org/centos-8/8/PowerTools/x86_64/os/"}          
+            "OtherRepoURL": "https://repo.almalinux.org/almalinux/8/PowerTools/x86_64/os/"}
         ]
     },
     {
@@ -65,11 +65,11 @@
           {"OtherRepoName": "epel8", 
             "OtherRepoURL": "https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/"},
           {"OtherRepoName": "appstream", 
-            "OtherRepoURL": "https://composes.centos.org/latest-CentOS-Stream-8/compose/AppStream/x86_64/os/"},
+            "OtherRepoURL": "https://repo.almalinux.org/almalinux/8/AppStream/x86_64/os/"},
           {"OtherRepoName": "baseos", 
-            "OtherRepoURL": "https://composes.centos.org/latest-CentOS-Stream-8/compose/BaseOS/x86_64/os/"},
+            "OtherRepoURL": "https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/"},
           {"OtherRepoName": "powertools", 
-            "OtherRepoURL": "https://composes.centos.org/latest-CentOS-Stream-8/compose/PowerTools/x86_64/os/"}          
+            "OtherRepoURL": "https://repo.almalinux.org/almalinux/8/PowerTools/x86_64/os/"}
         ]
     },
     {
