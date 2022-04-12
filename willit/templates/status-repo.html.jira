@@ -23,21 +23,21 @@
         <td rowspan="3">{{ repo['reponame']  }}</td>
         <td colspan="2">Total</td>
         <td colspan="2">Install</td>
-        <td colspan="2">Build</td>
       </tr>
       <tr>
         <td>Source</td>
         <td>Binary</td>
         <td colspan="2" bgcolor="{{ repo['ci_bcolor'] }}">Binary</td>
-        <td colspan="2" bgcolor="{{ repo['cb_scolor'] }}">Source</td>
       </tr>
       <tr>
         <td>{{ repo['snumber'] }}</td>
         <td>{{ repo['bnumber'] }}</td>
-        <td>{{ repo['ci_bnumber_good'] }}</td>
-        <td>{{ repo['ci_bnumber_bad'] }}</td>
-        <td>{{ repo['cb_snumber_good'] }}</td>
-        <td>{{ repo['cb_snumber_bad'] }}</td>
+        <td bgcolor="{{ color_good }}">{{ repo['ci_bnumber_good'] }}</td>
+        {% if repo['ci_bnumber_bad'] %}
+          <td bgcolor="{{ color_bad }}">{{ repo['ci_bnumber_bad'] }}</td>
+        {% else %}
+          <td bgcolor="{{ color_good }}">{{ repo['ci_bnumber_bad'] }}</td>
+        {% endif %}        
       </tr>
     </table>
   <p>
@@ -57,21 +57,21 @@
         <td rowspan="3">{{ repo['reponame']  }}-testing</td>
         <td colspan="2">Total</td>
         <td colspan="2">Install</td>
-        <td colspan="2">Build</td>
       </tr>
       <tr>
         <td>Source</td>
         <td>Binary</td>
         <td colspan="2" bgcolor="{{ repo['test_ci_bcolor'] }}">Binary</td>
-        <td colspan="2" bgcolor="{{ repo['test_cb_scolor'] }}">Source</td>
       </tr>
       <tr>
         <td>{{ repo['test_snumber'] }}</td>
         <td>{{ repo['test_bnumber'] }}</td>
-        <td>{{ repo['test_ci_bnumber_good'] }}</td>
-        <td>{{ repo['test_ci_bnumber_bad'] }}</td>
-        <td>{{ repo['test_cb_snumber_good'] }}</td>
-        <td>{{ repo['test_cb_snumber_bad'] }}</td>
+        <td bgcolor="{{ color_good }}">{{ repo['test_ci_bnumber_good'] }}</td>
+        {% if repo['test_ci_bnumber_bad'] %}
+          <td bgcolor="{{ color_bad }}">{{ repo['test_ci_bnumber_bad'] }}</td>
+        {% else %}
+          <td bgcolor="{{ color_good }}">{{ repo['test_ci_bnumber_bad'] }}</td>
+        {% endif %}        
       </tr>
     </table>
   <p>

@@ -43,8 +43,12 @@
         <td>{{ r['snumber'] }}</td>
         <td>{{ r['bnumber'] }}</td>
       {% if r['test_install'] == 'True' %}
-        <td>{{ r['ci_bnumber_good'] }}</td>
-        <td>{{ r['ci_bnumber_bad'] }}</td>
+        <td bgcolor="{{ color_good }}">{{ r['ci_bnumber_good'] }}</td>
+        {% if r['ci_bnumber_bad'] %}
+          <td bgcolor="{{ color_bad }}">{{ r['ci_bnumber_bad'] }}</td>
+        {% else %}
+          <td bgcolor="{{ color_good }}">{{ r['ci_bnumber_bad'] }}</td>
+        {% endif %}        
       {% endif %}
       {% if r['test_build'] == 'True' %}
         <td>{{ r['cb_snumber_good'] }}</td>
@@ -77,8 +81,12 @@
         <td>{{ r['test_snumber'] }}</td>
         <td>{{ r['test_bnumber'] }}</td>
       {% if r['test_install'] == 'True' %}
-        <td>{{ r['test_ci_bnumber_good'] }}</td>
-        <td>{{ r['test_ci_bnumber_bad'] }}</td>
+        <td bgcolor="{{ color_good }}">{{ r['test_ci_bnumber_good'] }}</td>
+        {% if r['test_ci_bnumber_bad'] %}
+          <td bgcolor="{{ color_bad }}">{{ r['test_ci_bnumber_bad'] }}</td>
+        {% else %}
+          <td bgcolor="{{ color_good }}">{{ r['test_ci_bnumber_bad'] }}</td>
+        {% endif %}        
       {% endif %}
       {% if r['test_build'] == 'True' %}
         <td>{{ r['test_cb_snumber_good'] }}</td>

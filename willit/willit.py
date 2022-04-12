@@ -4,13 +4,19 @@ import datetime
 import dnf
 import glob
 import json
+import koji
 import os
+import urllib
+import shutil
 
 from jinja2 import Template
 from pathlib import Path
 
 ## Variables
 installroot = "/installroot"
+baseURL = "https://kojipkgs.fedoraproject.org//packages"
+archList = ["x86_64"]
+#archList = ["aarch64", "ppc64le", "s390x", "x86_64"]
 # Colors
 color_good = "#00ff00"
 color_bad = "#ff0000"
@@ -66,6 +72,120 @@ def will_pkg_install(pkg, style, repo_info):
       this_status['error'] = e
   return this_status
 
+# Will the sourcepkg build using the corresponding repos
+def will_pkg_build(pkg, name_list, repo_name, koji_session):
+  this_status = {"status": "pass", "error": ""}
+  this_missing_packages = []
+  this_build = koji_session.listTagged(repo_name,package=pkg,latest=True)[0]
+  logURL = baseURL+"/"+pkg+"/"+this_build['version']+"/"+this_build['release']+"/data/logs/"
+  print()
+  print(pkg)
+  try:
+    root_log = urllib.request.urlopen(logURL+"noarch/root.log")
+    test = 1
+  except Exception as ex:
+    print("No logs for: " + logURL+"noarch/root.log")
+    test = 0
+  if test == 1:
+    this_check = parse_root_log(root_log, name_list)
+    if len(this_check) > 0:
+      this_missing_packages.append(this_check)    
+  else:
+    for arch in archList:
+      try:
+        root_log = urllib.request.urlopen(logURL+arch+"/root.log")
+        test = 1
+      except Exception as ex:
+        print("No logs for: " + logURL+arch+"/root.log")
+        test = 0
+      if test == 1:
+        this_check = parse_root_log(root_log, name_list)
+        if len(this_check) > 0:
+          this_missing_packages.append(this_check)
+  if len(this_missing_packages) > 0:
+      this_status['status'] = "fail"
+      this_status['error'] = this_missing_packages
+  return this_status
+
+# Return a list of just the names
+def get_names(pkg_list):
+  this_names = []
+  for bpkg in pkg_list:
+    this_names.append(bpkg.name)
+  return this_names
+  
+# Parse root log.  Return any packages not in packagelist
+def parse_root_log(root_log, name_list):
+  not_found = []
+  # parseStatus
+  # 1: top, 2: base required packages 3: base other packages
+  # 4: middle, 5: add already installed 6: add required packages
+  # 7: add other packages, 8: bottom
+  parseStatus = 1
+  check = 0
+  line = root_log.readline().decode('utf-8').split()
+  while line:
+      #print("    Status: " + str(parseStatus))
+      #print(line)
+      if len(line) >2 :
+          if parseStatus == 1:
+              if '=================' in str(line[2]):
+                  if check == 0:
+                      check = 1
+                  else:
+                      check = 0
+                      parseStatus = 2
+                      #print("    Status: " + str(parseStatus))
+                      tmpline = root_log.readline()
+          elif parseStatus == 2:
+              if line[2] == "Installing":
+                  parseStatus = 3
+                  #print("    Status: " + str(parseStatus))
+              else:
+                  #print("Base Required: " + str(line[2]))
+                  if not line[2] in name_list:
+                    not_found.append(line[2])
+          elif parseStatus == 3:
+              if line[2] == "Transaction":
+                  parseStatus = 4
+                  #print("    Status: " + str(parseStatus))
+                  tmpline = root_log.readline()
+              elif line[2] == "Installing":
+                  tmpline = root_log.readline()
+              else:
+                  #print("Base Runtime Dependency: " + line[2])
+                  if not line[2] in name_list:
+                    not_found.append(line[2])                  
+          elif parseStatus == 4:
+              if "=================" in str(line[2]):
+                  if check == 0:
+                      check = 1
+                  else:
+                      check = 0
+                      parseStatus = 5
+                      #print("    Status: " + str(parseStatus))
+                      tmpline = root_log.readline()
+          elif parseStatus == 5:
+              if line[2] == "Installing":
+                  parseStatus = 6
+                  #print("    Status: " + str(parseStatus))
+                  tmpline = root_log.readline()
+              else:
+                  #print("Required: " + str(line[2]))
+                  if not line[2] in name_list:
+                    not_found.append(line[2])
+          elif parseStatus == 6:
+              if line[2] == "Transaction":
+                  parseStatus = 8
+                  #print("    Status: " + str(parseStatus))
+                  tmpline = root_log.readline()
+              else:
+                  #print("Required Dependency: " + line[2])
+                  if not line[2] in name_list:
+                    not_found.append(line[2])                  
+      line = root_log.readline().decode('utf-8').split()
+  return not_found
+
 with open('willit-config.json') as json_file:
   input_config = json.load(json_file)
     
@@ -81,12 +201,14 @@ for this_repo in input_config['repos']:
   print("Working On: " + this_repo['RepoName'])
   this_overall = {}
   this_spkg_list = {}
+  this_bpkg_name_list = []
   ci_bad_binary = []
   cb_bad_builds = []
   test_this_spkg_list = {}
   test_ci_bad_binary = []
   test_cb_bad_builds = []
   this_overall["reponame"] = this_repo['RepoName']
+  shutil.rmtree("/var/tmp/willit-dnf-cache-" + this_repo['RepoName'], ignore_errors=True)
   
   ## Gather a list of all binary packages in main repo.
   print("  Gathering binary packages in repo ... ", end='')
@@ -97,7 +219,15 @@ for this_repo in input_config['repos']:
     base.fill_sack(load_system_repo=False)
     query = base.sack.query().available()
     this_bpkg_list = query.run()
-  print(len(this_bpkg_list))
+    print(len(this_bpkg_list))
+    print("  Gathering binary packages in other repos also ... ", end='')
+    for other_repo in this_repo['OtherRepos']:
+      base.repos.add_new_repo(other_repo['OtherRepoName'], conf, baseurl=[other_repo['OtherRepoURL']])
+    base.fill_sack(load_system_repo=False)
+    full_query = base.sack.query().available()
+    this_full_bpkg_list = full_query.run()
+    print(len(this_full_bpkg_list))
+
   
   ## Get the source rpms out of the binary package list
   print("  Generating source package list ... ", end='')
@@ -122,6 +252,27 @@ for this_repo in input_config['repos']:
     
   this_overall["bnumber"] = len(this_bpkg_list)
   this_overall["snumber"] = len(this_spkg_list)
+  this_bpkg_name_list = this_bpkg_name_list + get_names(this_full_bpkg_list)
+  print("  Total Binaries thus far: " + str(len(this_bpkg_name_list)))
+
+  #Gather a list of all binary packages in all other repos.
+  #print('  OtherRepos: ' + str(this_repo['OtherRepos']))
+  #for other_repo in this_repo['OtherRepos']:
+    #print("  Gathering binary packages in " + other_repo['OtherRepoName'])
+  #for other_repo in this_repo['OtherRepos']:
+    #print("  Gathering binary packages in " + other_repo['OtherRepoName'] + "...", end='')
+    #with dnf.Base() as base:
+      #conf = base.conf
+      #conf.cachedir = "/var/tmp/willit-dnf-cache-" + other_repo['OtherRepoName']
+      #base.repos.add_new_repo(other_repo['OtherRepoName'], conf, baseurl=[other_repo['OtherRepoURL']])
+      #base.fill_sack(load_system_repo=False)
+      #query = base.sack.query().available()
+      #other_bpkg_list = query.run()
+    #print(len(other_bpkg_list))
+    #this_bpkg_name_list = this_bpkg_name_list + get_names(other_bpkg_list)
+    #print("  Total Binaries thus far: " + str(len(this_bpkg_name_list)))
+  #print("  Total Binaries in all repos: " + str(len(this_bpkg_name_list)))
+  
 
   # Will It Install
   if this_repo['CheckInstall'] == "True":
@@ -162,9 +313,23 @@ for this_repo in input_config['repos']:
   if this_repo['CheckBuild'] == "True":
     this_overall["test_build"] = "True"
     print("  Starting CheckBuild")
+    this_spkg_list = ["kate"]
+    infra = koji.ClientSession('https://koji.fedoraproject.org/kojihub')
+    for spkg in this_spkg_list:
+      spkg_status = will_pkg_build(spkg, this_bpkg_name_list, this_repo['RepoName'], infra)
+      if spkg_status['status'] == "fail":
+        print("    Wont Build: " + str(spkg))
+        print(str(spkg_status))
+        bsource = {}
+        bsource['bname'] = spkg
+        bsource['error'] = spkg_status['error']
+        cb_bad_builds.append(bsource)
     this_overall["cb_snumber_good"] = this_overall["snumber"]
-    this_overall["cb_snumber_bad"] = 0
-    this_overall["cb_scolor"] = color_good
+    this_overall["cb_snumber_bad"] = this_overall["snumber"] - len(cb_bad_builds)
+    if len(cb_bad_builds) > 0:
+      this_overall["cb_scolor"] = color_bad
+    else:
+      this_overall["cb_scolor"] = color_good
   else:
     this_overall["test_build"] = "False"
     this_overall["cb_snumber_good"] = "--"
@@ -327,6 +492,9 @@ for this_repo in input_config['repos']:
       with open('output/' + this_repo['RepoName'] + '/testing-packages/' + spkg['sname'] + '.html', 'w') as w:
         w.write(ptmpl.render(
           this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
+          color_good=color_good,
+          color_bad=color_bad,
+          color_not=color_not,
           repoName=this_repo['RepoName'],
           pkgName=spkg['sname'],
           sNVR=spkg['snvr'],
@@ -342,4 +510,7 @@ with open('templates/status-overall.html.jira') as f:
 with open('output/status-overall.html', 'w') as w:
   w.write(tmpl.render(
     this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
+    color_good=color_good,
+    color_bad=color_bad,
+    color_not=color_not,
     repos=mainList))
