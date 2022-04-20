@@ -11,8 +11,13 @@
     </p>
 
     <ul>
-        {% for pkg in spkgList -%}
-          <li><a href="{{ pkgDir }}/{{ pkg }}.html">{{ pkg }}</a></li>
+        {% for spkg in spkgList -%}
+          <li>
+              {% if spkg['bug_count'] >= 1 %}
+              ({{ spkg['bug_count'] }})
+              {% endif %}
+              <a href="{{ pkgDir }}/{{ spkg['sname'] }}.html">{{ spkg['sname'] }}</a>
+          </li>
         {% endfor -%}
     </ul>
   </body>

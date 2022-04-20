@@ -379,7 +379,7 @@ for this_repo in input_config['repos']:
       this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
       repoName=this_repo['RepoName'],
       pkgDir="packages",
-      spkgList=this_spkg_list.keys()))
+      spkgList=this_spkg_list.values()))
   if this_repo['CheckTest'] == "True":
     with open('output/' + this_repo['RepoName'] + '/index-test-packages.html', 'w') as w:
       w.write(iptmpl.render(
