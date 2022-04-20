@@ -17,6 +17,7 @@ installroot = "/installroot"
 color_good = "#00ff00"
 color_bad = "#ff0000"
 color_not = "#d9ccd3"
+bz_page_size = 20
 
 # Lists/Dicts
 mainDict = {}
@@ -68,6 +69,18 @@ def will_pkg_install(pkg, style, repo_info):
       this_status['error'] = e
   return this_status
 
+# We need to iterate to get all the bugzilla bugs
+def _iterate_bugzilla_query(querydata):
+    """Iterate Bugzilla query until all results are fetched."""
+    print("    Getting next page of bugz")
+    results = bzapi.query(querydata)
+    if len(results) == bz_page_size:
+        last_result_id = results[-1].id
+        querydata['f1'] = 'bug_id'
+        querydata['o1'] = 'greaterthan'
+        querydata['v1'] = last_result_id
+        results += _iterate_bugzilla_query(querydata)
+    return results
 
 with open('willit-config.json') as json_file:
   input_config = json.load(json_file)
@@ -84,6 +97,7 @@ for this_repo in input_config['repos']:
   print("Working On: " + this_repo['RepoName'])
   this_overall = {}
   this_spkg_list = {}
+  this_bugz_no_source = []
   ci_bad_binary = []
   cb_bad_builds = []
   test_this_spkg_list = {}
@@ -147,13 +161,15 @@ for this_repo in input_config['repos']:
     if version:
       URL = "bugzilla.redhat.com"
       bzapi = bugzilla.Bugzilla(URL)
-      query = bzapi.build_query(
+      bquery = bzapi.build_query(
         product=product,
         version=version,
         status='__open__')
-      query["limit"] = 1000
-      query["offset"] = 0
-      bugz = bzapi.query(query)
+      bquery["limit"] = bz_page_size
+      bquery["offset"] = 0
+      bquery["order"] = "bug_id"
+      bugz = []
+      bugz = _iterate_bugzilla_query(bquery)
       for bug in bugz:
         print("    Bug: {0} {1} {2} {3}".format(bug.id, bug.component, bug.status, bug.summary))
         this_bug = {}
@@ -163,6 +179,10 @@ for this_repo in input_config['repos']:
         if bug.component in this_spkg_list:
           this_spkg_list[bug.component]['bugz'].append(this_bug)
           print("      Added")
+        else:
+          this_bugz_no_source.append(this_bug)
+      print("Number of Bugs: {}".format(len(bugz)))
+      print("Number of No Source Bugs: {}".format(len(this_bugz_no_source)))
   else:
     this_overall["test_bugz"] = "False"
 

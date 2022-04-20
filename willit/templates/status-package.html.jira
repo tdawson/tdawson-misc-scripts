@@ -26,7 +26,7 @@
     </table>
 
     <h2>Bugs</h2>
-    <table border=0>
+    <table border=1>
       {% for bp in bugz -%}
         <tr>
           <td><a href="https://bugzilla.redhat.com/show_bug.cgi?id={{ bp['id'] }}">{{ bp['id'] }}</a></td>
