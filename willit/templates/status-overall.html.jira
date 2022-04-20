@@ -21,7 +21,11 @@
     <table border=1>
       <tr>
         <td rowspan="3">{{ r['reponame']  }}</td>
-        <td colspan="2"><a href="{{ r['reponame']  }}/index-packages.html">Total</a></td>
+      {% if r['test_bugz'] == 'True' %}
+        <td colspan="3">Total</td>
+      {% else %}
+        <td colspan="2">Total</td>
+      {% endif %}
       {% if r['test_install'] == 'True' %}
         <td colspan="2"><a href="{{ r['reponame']  }}/status-wont-install.html">Install</a></td>
       {% endif %}
@@ -32,6 +36,9 @@
       <tr>
         <td>Source</td>
         <td>Binary</td>
+      {% if r['test_bugz'] == 'True' %}
+        <td>Bugz</td>
+      {% endif %}
       {% if r['test_install'] == 'True' %}
         <td colspan="2" bgcolor="{{ r['ci_bcolor'] }}">Binary</td>
       {% endif %}
@@ -42,6 +49,9 @@
       <tr>
         <td>{{ r['snumber'] }}</td>
         <td>{{ r['bnumber'] }}</td>
+      {% if r['test_bugz'] == 'True' %}
+        <td>{{ r['bugz_total'] }}</td>
+      {% endif %}
       {% if r['test_install'] == 'True' %}
         <td>{{ r['ci_bnumber_good'] }}</td>
         <td>{{ r['ci_bnumber_bad'] }}</td>

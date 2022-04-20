@@ -136,6 +136,7 @@ for this_repo in input_config['repos']:
       this_source['bad_install'] = []
       this_source['bad_build'] = []
       this_source['bugz'] = []
+      this_source['bug_count'] = 0
       this_spkg_list[sourcename] = this_source
   print(len(this_spkg_list))
     
@@ -157,6 +158,7 @@ for this_repo in input_config['repos']:
     else:
       version = None
       print("    Repo Name not in list, not checking bugz")
+      this_overall["test_bugz"] = "False"
     
     if version:
       URL = "bugzilla.redhat.com"
@@ -178,13 +180,18 @@ for this_repo in input_config['repos']:
         this_bug['summary'] = bug.summary
         if bug.component in this_spkg_list:
           this_spkg_list[bug.component]['bugz'].append(this_bug)
+          this_spkg_list[bug.component]['bug_count'] += 1
           print("      Added")
         else:
           this_bugz_no_source.append(this_bug)
       print("Number of Bugs: {}".format(len(bugz)))
       print("Number of No Source Bugs: {}".format(len(this_bugz_no_source)))
+      this_overall["bugz_total"] = len(this_bugz_no_source)
+      this_overall["bugz_total_no_source"] = len(this_bugz_no_source)
+      this_overall["bugz_no_source"] = this_bugz_no_source
   else:
     this_overall["test_bugz"] = "False"
+  
 
   # Will It Install
   if this_repo['CheckInstall'] == "True":
@@ -342,6 +349,13 @@ for this_repo in input_config['repos']:
       testBadInstall=test_ci_bad_binary,
       testBadInstallNum=len(test_ci_bad_binary),
       repo=this_overall))
+  if this_overall["test_bugz"] == "True":
+    with open('templates/status-bugz-no-source.html.jira') as f:
+      bnstmpl = Template(f.read())
+    with open('output/' + this_repo['RepoName'] + '/status-bugz-no-source.html', 'w') as w:
+      w.write(bnstmpl.render(
+        this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
+        repo=this_overall))
   with open('templates/status-repo.html.jira') as f:
     tmpl = Template(f.read())
   with open('output/' + this_repo['RepoName'] + '/status-repo.html', 'w') as w:

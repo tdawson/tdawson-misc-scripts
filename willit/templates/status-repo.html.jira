@@ -21,19 +21,29 @@
     <table border=1>
       <tr>
         <td rowspan="3">{{ repo['reponame']  }}</td>
+      {% if repo['test_bugz'] == 'True' %}
+        <td colspan="3">Total</td>
+      {% else %}
         <td colspan="2">Total</td>
+      {% endif %}
         <td colspan="2">Install</td>
         <td colspan="2">Build</td>
       </tr>
       <tr>
         <td>Source</td>
         <td>Binary</td>
+      {% if repo['test_bugz'] == 'True' %}
+        <td>Bugz</td>
+      {% endif %}
         <td colspan="2" bgcolor="{{ repo['ci_bcolor'] }}">Binary</td>
         <td colspan="2" bgcolor="{{ repo['cb_scolor'] }}">Source</td>
       </tr>
       <tr>
         <td>{{ repo['snumber'] }}</td>
         <td>{{ repo['bnumber'] }}</td>
+      {% if repo['test_bugz'] == 'True' %}
+        <td>{{ repo['bugz_total'] }}</td>
+      {% endif %}
         <td>{{ repo['ci_bnumber_good'] }}</td>
         <td>{{ repo['ci_bnumber_bad'] }}</td>
         <td>{{ repo['cb_snumber_good'] }}</td>
@@ -47,6 +57,9 @@
       {% endif %}
       {% if repo['test_build'] == 'True' %}
     <br><a href="status-wont-build.html">{{ repo['reponame']  }} Packages that will not build</a> ( {{ badBuildNum  }} )
+      {% endif %}
+      {% if repo['test_bugz'] == 'True' %}
+    <br><a href="status-bugz-no-source.html">{{ repo['reponame']  }} Bugzilla Bugs with no corresponsing source package</a> ( {{ repo['bugz_total_no_source']  }} )
       {% endif %}
   </p>
       {% if repo['test_checked'] == 'True' %}
