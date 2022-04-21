@@ -273,6 +273,8 @@ for this_repo in input_config['repos']:
         this_source['binaries'] = [this_binary]
         this_source['bad_install'] = []
         this_source['bad_build'] = []
+        this_source['bugz'] = []
+        this_source['bug_count'] = 0
         test_this_spkg_list[sourcename] = this_source
     print(len(test_this_spkg_list))
 
@@ -386,7 +388,7 @@ for this_repo in input_config['repos']:
         this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
         repoName=this_repo['RepoName'] + "testing",
         pkgDir="testing-packages",
-        spkgList=test_this_spkg_list.keys()))
+        spkgList=test_this_spkg_list.values()))
   with open('templates/status-package.html.jira') as f:
     ptmpl = Template(f.read())
   for spkg in this_spkg_list.values() :
