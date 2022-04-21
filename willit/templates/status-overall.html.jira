@@ -65,7 +65,11 @@
       {% if r['test_checked'] == 'True' %}
       <tr>
         <td rowspan="3">{{ r['reponame']  }}-testing</td>
+      {% if r['test_bugz'] == 'True' %}
+        <td colspan="3">Total</td>
+      {% else %}
         <td colspan="2">Total</td>
+      {% endif %}
       {% if r['test_install'] == 'True' %}
         <td colspan="2">Install</td>
       {% endif %}
@@ -76,6 +80,9 @@
       <tr>
         <td>Source</td>
         <td>Binary</td>
+      {% if r['test_bugz'] == 'True' %}
+        <td>Bugz</td>
+      {% endif %}
       {% if r['test_install'] == 'True' %}
         <td colspan="2" bgcolor="{{ r['test_ci_bcolor'] }}">Binary</td>
       {% endif %}
@@ -86,6 +93,9 @@
       <tr>
         <td>{{ r['test_snumber'] }}</td>
         <td>{{ r['test_bnumber'] }}</td>
+        {% if r['test_bugz'] == 'True' %}
+          <td> - </td>
+        {% endif %}
       {% if r['test_install'] == 'True' %}
         <td>{{ r['test_ci_bnumber_good'] }}</td>
         <td>{{ r['test_ci_bnumber_bad'] }}</td>
