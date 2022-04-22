@@ -186,7 +186,7 @@ for this_repo in input_config['repos']:
           this_bugz_no_source.append(this_bug)
       print("Number of Bugs: {}".format(len(bugz)))
       print("Number of No Source Bugs: {}".format(len(this_bugz_no_source)))
-      this_overall["bugz_total"] = len(this_bugz_no_source)
+      this_overall["bugz_total"] = len(bugz)
       this_overall["bugz_total_no_source"] = len(this_bugz_no_source)
       this_overall["bugz_no_source"] = this_bugz_no_source
   else:
