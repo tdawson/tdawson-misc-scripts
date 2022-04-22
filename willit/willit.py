@@ -98,6 +98,7 @@ for this_repo in input_config['repos']:
   this_overall = {}
   this_spkg_list = {}
   this_bugz_no_source = []
+  this_bugz_cve = []
   ci_bad_binary = []
   cb_bad_builds = []
   test_this_spkg_list = {}
@@ -137,6 +138,7 @@ for this_repo in input_config['repos']:
       this_source['bad_build'] = []
       this_source['bugz'] = []
       this_source['bug_count'] = 0
+      this_source['bug_count_cve'] = 0
       this_spkg_list[sourcename] = this_source
   print(len(this_spkg_list))
     
@@ -181,14 +183,20 @@ for this_repo in input_config['repos']:
         if bug.component in this_spkg_list:
           this_spkg_list[bug.component]['bugz'].append(this_bug)
           this_spkg_list[bug.component]['bug_count'] += 1
+          if 'CVE' in bug.summary:
+            this_bugz_cve.append(this_bug)
+            this_spkg_list[bug.component]['bug_count_cve'] += 1
           print("      Added")
         else:
           this_bugz_no_source.append(this_bug)
       print("Number of Bugs: {}".format(len(bugz)))
       print("Number of No Source Bugs: {}".format(len(this_bugz_no_source)))
+      print("Number of CVE Bugs: {}".format(len(this_bugz_cve)))
       this_overall["bugz_total"] = len(bugz)
       this_overall["bugz_total_no_source"] = len(this_bugz_no_source)
+      this_overall["bugz_total_cve"] = len(this_bugz_cve)
       this_overall["bugz_no_source"] = this_bugz_no_source
+      this_overall["bugz_cve"] = this_bugz_cve
   else:
     this_overall["test_bugz"] = "False"
   
@@ -275,6 +283,7 @@ for this_repo in input_config['repos']:
         this_source['bad_build'] = []
         this_source['bugz'] = []
         this_source['bug_count'] = 0
+        this_source['bug_count_cve'] = 0
         test_this_spkg_list[sourcename] = this_source
     print(len(test_this_spkg_list))
 
@@ -356,6 +365,12 @@ for this_repo in input_config['repos']:
       bnstmpl = Template(f.read())
     with open('output/' + this_repo['RepoName'] + '/status-bugz-no-source.html', 'w') as w:
       w.write(bnstmpl.render(
+        this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
+        repo=this_overall))
+    with open('templates/status-bugz-cve.html.jira') as f:
+      bcvetmpl = Template(f.read())
+    with open('output/' + this_repo['RepoName'] + '/status-bugz-cve.html', 'w') as w:
+      w.write(bcvetmpl.render(
         this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
         repo=this_overall))
   with open('templates/status-repo.html.jira') as f:

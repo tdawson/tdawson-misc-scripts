@@ -14,7 +14,7 @@
         {% for spkg in spkgList -%}
           <li>
               {% if spkg['bug_count'] >= 1 %}
-              ({{ spkg['bug_count'] }})
+              ({{ spkg['bug_count'] }})[{{ spkg['bug_count_cve'] }}]
               {% endif %}
               <a href="{{ pkgDir }}/{{ spkg['sname'] }}.html">{{ spkg['sname'] }}</a>
           </li>

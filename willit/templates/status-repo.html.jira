@@ -21,33 +21,34 @@
     <table border=1>
       <tr>
         <td rowspan="3">{{ repo['reponame']  }}</td>
-      {% if repo['test_bugz'] == 'True' %}
-        <td colspan="3">Total</td>
-      {% else %}
         <td colspan="2">Total</td>
-      {% endif %}
         <td colspan="2">Install</td>
         <td colspan="2">Build</td>
+      {% if repo['test_bugz'] == 'True' %}
+        <td colspan="2">Bugz</td>
+      {% endif %}
       </tr>
       <tr>
         <td>Source</td>
         <td>Binary</td>
-      {% if repo['test_bugz'] == 'True' %}
-        <td>Bugz</td>
-      {% endif %}
         <td colspan="2" bgcolor="{{ repo['ci_bcolor'] }}">Binary</td>
         <td colspan="2" bgcolor="{{ repo['cb_scolor'] }}">Source</td>
+      {% if repo['test_bugz'] == 'True' %}
+        <td>Total</td>
+        <td> CVE </td>
+      {% endif %}
       </tr>
       <tr>
         <td>{{ repo['snumber'] }}</td>
         <td>{{ repo['bnumber'] }}</td>
-      {% if repo['test_bugz'] == 'True' %}
-        <td>{{ repo['bugz_total'] }}</td>
-      {% endif %}
         <td>{{ repo['ci_bnumber_good'] }}</td>
         <td>{{ repo['ci_bnumber_bad'] }}</td>
         <td>{{ repo['cb_snumber_good'] }}</td>
         <td>{{ repo['cb_snumber_bad'] }}</td>
+      {% if repo['test_bugz'] == 'True' %}
+        <td>{{ repo['bugz_total'] }}</td>
+        <td>{{ repo['bugz_total_cve'] }}</td>
+      {% endif %}
       </tr>
     </table>
   <p>
@@ -60,6 +61,7 @@
       {% endif %}
       {% if repo['test_bugz'] == 'True' %}
     <br><a href="status-bugz-no-source.html">{{ repo['reponame']  }} Bugzilla Bugs with no corresponsing source package</a> ( {{ repo['bugz_total_no_source']  }} )
+    <br><a href="status-bugz-cve.html">{{ repo['reponame']  }} CVE Bugzilla Bugs </a> ( {{ repo['bugz_total_cve']  }} )
       {% endif %}
   </p>
       {% if repo['test_checked'] == 'True' %}
@@ -68,29 +70,19 @@
     <table border=1>
       <tr>
         <td rowspan="3">{{ repo['reponame']  }}-testing</td>
-        {% if repo['test_bugz'] == 'True' %}
-          <td colspan="3">Total</td>
-        {% else %}
           <td colspan="2">Total</td>
-        {% endif %}
         <td colspan="2">Install</td>
         <td colspan="2">Build</td>
       </tr>
       <tr>
         <td>Source</td>
         <td>Binary</td>
-        {% if repo['test_bugz'] == 'True' %}
-          <td>Bugz</td>
-        {% endif %}
         <td colspan="2" bgcolor="{{ repo['test_ci_bcolor'] }}">Binary</td>
         <td colspan="2" bgcolor="{{ repo['test_cb_scolor'] }}">Source</td>
       </tr>
       <tr>
         <td>{{ repo['test_snumber'] }}</td>
         <td>{{ repo['test_bnumber'] }}</td>
-      {% if repo['test_bugz'] == 'True' %}
-        <td> - </td>
-      {% endif %}
         <td>{{ repo['test_ci_bnumber_good'] }}</td>
         <td>{{ repo['test_ci_bnumber_bad'] }}</td>
         <td>{{ repo['test_cb_snumber_good'] }}</td>
