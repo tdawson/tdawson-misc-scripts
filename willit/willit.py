@@ -201,6 +201,45 @@ for this_repo in input_config['repos']:
     this_overall["test_bugz"] = "False"
   
 
+  # Will It Duplicate
+  if this_repo['CheckDuplicates'] == "True":
+    this_overall["test_duplicates"] = "True"
+    print("  Starting CheckDuplicates")
+    
+    print("    Gathering Upstream Source Names")
+    upstream_source_names = []
+    duplicate_list = []
+    ## Gather a list of all binary packages in upstream repos.
+    print("      Gathering upstream binary packages ... ", end='')
+    with dnf.Base() as base:
+      conf = base.conf
+      conf.cachedir = "/var/tmp/willit-dnf-cache-" + this_repo['RepoName']
+      for other_repo in this_repo['OtherRepos']:
+        base.repos.add_new_repo(other_repo['OtherRepoName'], conf, baseurl=[other_repo['OtherRepoURL']])
+      base.fill_sack(load_system_repo=False)
+      query = base.sack.query().available()
+      upstream_bpkg_list = query.run()
+      print(len(upstream_bpkg_list))
+      ## Get the source rpms out of the binary package list
+      print("      Gathering upstream source package names ... ", end='')
+      for bpkg in upstream_bpkg_list:
+        sourcenvr = bpkg.sourcerpm.rsplit(".",2)[0]
+        sourcename = sourcenvr.rsplit("-",2)[0]
+        if sourcename not in upstream_source_names:
+          upstream_source_names.append(sourcename)
+      print(len(upstream_source_names))
+      
+    print("    Checking our souce names against upstreams")
+    for spkg in this_spkg_list.keys():
+      if spkg in upstream_source_names:
+        print("      {} - Duplicate".format(spkg))
+        duplicate_list.append(spkg)
+    this_overall["duplicate_list"] = duplicate_list
+  else:
+    this_overall["test_duplicates"] = "False"
+    this_overall["duplicate_list"] = []
+
+
   # Will It Install
   if this_repo['CheckInstall'] == "True":
     this_overall["test_install"] = "True"

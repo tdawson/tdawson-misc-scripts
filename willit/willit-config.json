@@ -7,6 +7,7 @@
       "CheckTest": "True",
       "CheckInstall": "True",
       "CheckBuild": "False",
+      "CheckDuplicates": "True",
       "TestRepoURL": "https://dl.fedoraproject.org/pub/epel/testing/9/Everything/x86_64/",
       "OtherRepos": 
         [
@@ -25,6 +26,7 @@
       "CheckTest": "True",
       "CheckInstall": "True",
       "CheckBuild": "False",
+      "CheckDuplicates": "False",
       "TestRepoURL": "https://dl.fedoraproject.org/pub/epel/testing/next/9/Everything/x86_64/",
       "OtherRepos": 
         [
@@ -45,6 +47,7 @@
       "CheckTest": "True",
       "CheckInstall": "True",
       "CheckBuild": "False",
+      "CheckDuplicates": "True",
       "TestRepoURL": "https://dl.fedoraproject.org/pub/epel/testing/8/Everything/x86_64/",
       "OtherRepos": 
         [
@@ -63,6 +66,7 @@
       "CheckTest": "True",
       "CheckInstall": "True",
       "CheckBuild": "False",
+      "CheckDuplicates": "False",
       "TestRepoURL": "https://dl.fedoraproject.org/pub/epel/testing/next/8/Everything/x86_64/",
       "OtherRepos": 
         [
@@ -83,6 +87,7 @@
       "CheckTest": "True",
       "CheckInstall": "True",
       "CheckBuild": "False",
+      "CheckDuplicates": "True",
       "TestRepoURL": "https://dl.fedoraproject.org/pub/epel/testing/7/x86_64/",
       "OtherRepos": 
         [
