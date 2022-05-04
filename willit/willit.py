@@ -235,9 +235,11 @@ for this_repo in input_config['repos']:
         print("      {} - Duplicate".format(spkg))
         duplicate_list.append(spkg)
     this_overall["duplicate_list"] = duplicate_list
+    this_overall["duplicate_total"] = len(duplicate_list)
   else:
     this_overall["test_duplicates"] = "False"
     this_overall["duplicate_list"] = []
+    this_overall["duplicate_total"] = 0
 
 
   # Will It Install
@@ -399,6 +401,13 @@ for this_repo in input_config['repos']:
       testBadInstall=test_ci_bad_binary,
       testBadInstallNum=len(test_ci_bad_binary),
       repo=this_overall))
+  if this_overall["test_duplicates"] == "True":
+    with open('templates/status-duplicates.html.jira') as f:
+      bnstmpl = Template(f.read())
+    with open('output/' + this_repo['RepoName'] + '/status-duplicates.html', 'w') as w:
+      w.write(bnstmpl.render(
+        this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
+        repo=this_overall))
   if this_overall["test_bugz"] == "True":
     with open('templates/status-bugz-no-source.html.jira') as f:
       bnstmpl = Template(f.read())

@@ -31,6 +31,9 @@
       {% if r['test_bugz'] == 'True' %}
         <td colspan="2">Bugz</td>
       {% endif %}
+      {% if r['test_duplicates'] == 'True' %}
+        <td>Dupes</td>
+      {% endif %}
       </tr>
       <tr>
         <td>Source</td>
@@ -44,6 +47,9 @@
       {% if r['test_bugz'] == 'True' %}
         <td>Total</td>
         <td> CVE </td>
+      {% endif %}
+      {% if r['test_duplicates'] == 'True' %}
+        <td>Dupes</td>
       {% endif %}
       </tr>
       <tr>
@@ -60,6 +66,9 @@
       {% if r['test_bugz'] == 'True' %}
         <td>{{ r['bugz_total'] }}</td>
         <td>{{ r['bugz_total_cve'] }}</td>
+      {% endif %}
+      {% if r['test_duplicates'] == 'True' %}
+        <td>{{ r['duplicate_total'] }}</td>
       {% endif %}
       </tr>
       

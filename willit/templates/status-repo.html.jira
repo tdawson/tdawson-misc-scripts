@@ -27,6 +27,9 @@
       {% if repo['test_bugz'] == 'True' %}
         <td colspan="2">Bugz</td>
       {% endif %}
+      {% if repo['test_duplicates'] == 'True' %}
+        <td>Dupes</td>
+      {% endif %}
       </tr>
       <tr>
         <td>Source</td>
@@ -36,6 +39,9 @@
       {% if repo['test_bugz'] == 'True' %}
         <td>Total</td>
         <td> CVE </td>
+      {% endif %}
+      {% if repo['test_duplicates'] == 'True' %}
+        <td>Dupes</td>
       {% endif %}
       </tr>
       <tr>
@@ -48,6 +54,9 @@
       {% if repo['test_bugz'] == 'True' %}
         <td>{{ repo['bugz_total'] }}</td>
         <td>{{ repo['bugz_total_cve'] }}</td>
+      {% endif %}
+      {% if repo['test_duplicates'] == 'True' %}
+        <td>{{ repo['duplicate_total'] }}</td>
       {% endif %}
       </tr>
     </table>
@@ -62,6 +71,9 @@
       {% if repo['test_bugz'] == 'True' %}
     <br><a href="status-bugz-no-source.html">{{ repo['reponame']  }} Bugzilla Bugs with no corresponsing source package</a> ( {{ repo['bugz_total_no_source']  }} )
     <br><a href="status-bugz-cve.html">{{ repo['reponame']  }} CVE Bugzilla Bugs </a> ( {{ repo['bugz_total_cve']  }} )
+      {% endif %}
+      {% if repo['test_duplicates'] == 'True' %}
+    <br><a href="status-duplicates.html">{{ repo['reponame']  }} Duplicate Packages With Upstream</a> ( {{ repo['duplicate_total']  }} )
       {% endif %}
   </p>
       {% if repo['test_checked'] == 'True' %}
