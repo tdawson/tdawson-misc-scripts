@@ -31,6 +31,9 @@ def get_base(style, repo_info):
   conf.installroot = installroot
   if style == "main":
     this_base.repos.add_new_repo(repo_info['RepoName'], conf, baseurl=[repo_info['RepoURL']])
+  if style == "next":
+    this_base.repos.add_new_repo(repo_info['RepoName'], conf, baseurl=[repo_info['RepoURL']])
+    this_base.repos.add_new_repo(repo_info['RepoName'] + "core", conf, baseurl=[repo_info['CoreRepoURL']])
   elif style == "testing":
     this_base.repos.add_new_repo(repo_info['RepoName'] + "testing", conf, baseurl=[repo_info['TestRepoURL']])
   elif style == "main-all":
@@ -113,8 +116,10 @@ for this_repo in input_config['repos']:
     conf = base.conf
     conf.cachedir = "/var/tmp/willit-dnf-cache-" + this_repo['RepoName']
     base.repos.add_new_repo(this_repo['RepoName'], conf, baseurl=[this_repo['RepoURL']])
+    if this_repo['IsNext'] == "True":
+      base.repos.add_new_repo(this_repo['RepoName'] + "core", conf, baseurl=[this_repo['CoreRepoURL']])
     base.fill_sack(load_system_repo=False)
-    query = base.sack.query().available()
+    query = base.sack.query().available().latest()
     this_bpkg_list = query.run()
   print(len(this_bpkg_list))
   
@@ -126,7 +131,7 @@ for this_repo in input_config['repos']:
     sourcename = sourcenvr.rsplit("-",2)[0]
     this_binary = {}
     this_binary['bname'] = bpkg.name
-    this_binary['bnvr'] =  binarynvr   
+    this_binary['bnvr'] =  binarynvr
     if sourcename in this_spkg_list:
       this_spkg_list[sourcename]['binaries'].append(this_binary)
     else:
@@ -217,7 +222,7 @@ for this_repo in input_config['repos']:
       for other_repo in this_repo['OtherRepos']:
         base.repos.add_new_repo(other_repo['OtherRepoName'], conf, baseurl=[other_repo['OtherRepoURL']])
       base.fill_sack(load_system_repo=False)
-      query = base.sack.query().available()
+      query = base.sack.query().available().latest()
       upstream_bpkg_list = query.run()
       print(len(upstream_bpkg_list))
       ## Get the source rpms out of the binary package list
@@ -300,7 +305,7 @@ for this_repo in input_config['repos']:
       conf.cachedir = "/var/tmp/willit-dnf-cache-" + this_repo['RepoName']
       base.repos.add_new_repo(this_repo['RepoName'] + "testing", conf, baseurl=[this_repo['TestRepoURL']])
       base.fill_sack(load_system_repo=False)
-      query = base.sack.query().available()
+      query = base.sack.query().available().latest()
       this_bpkg_list = query.run()
     print(len(this_bpkg_list))
 
