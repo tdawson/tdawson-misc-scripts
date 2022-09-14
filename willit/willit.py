@@ -115,9 +115,9 @@ for this_repo in input_config['repos']:
   test_ci_bad_binary = []
   test_cb_bad_builds = []
   this_overall["reponame"] = this_repo['RepoName']
-  if old_repo["day"]:
+  try:
     this_overall["day"] = old_repo["day"]
-  else:
+  except KeyError:
     this_overall["day"] = this_day
   shutil.rmtree("/var/tmp/willit-dnf-cache-" + this_repo['RepoName'], ignore_errors=True)
   
