@@ -23,14 +23,14 @@
     <h3>Packages that will not install</h3>
     <ul>
       {% for bb in badInstall -%}
-        <li><a href="packages/{{ bb['sname'] }}.html">{{ bb['bnvr'] }}</a></li>
+        <li><a href="packages/{{ bb['sname'] }}.html">{{ bb['bnvr'] }}</a> ({{ bb['day'] }})</li>
       {% endfor -%}
     </ul>
 
     <h3>Errors when install is tried</h3>
 
     {% for bb in badInstall -%}
-      <p>Package: <a href="packages/{{ bb['sname'] }}.html">{{ bb['bnvr'] }}</a>
+      <p>Package: <a href="packages/{{ bb['sname'] }}.html">{{ bb['bnvr'] }}</a> ({{ bb['day'] }})
       <br>Error: {{ bb['error'] }}
       </p>
     {% endfor -%}
@@ -43,14 +43,14 @@
     <h3>Packages that will not install</h3>
     <ul>
       {% for bb in testBadInstall -%}
-        <li><a href="packages/{{ bb['sname'] }}.html">{{ bb['bnvr'] }}</a></li>
+        <li><a href="packages/{{ bb['sname'] }}.html">{{ bb['bnvr'] }}</a> ({{ bb['day'] }})</li>
       {% endfor -%}
     </ul>
 
     <h3>Errors when install is tried</h3>
 
     {% for bb in testBadInstall -%}
-      <p>Package: <a href="packages/{{ bb['sname'] }}.html">{{ bb['bnvr'] }}</a>
+      <p>Package: <a href="packages/{{ bb['sname'] }}.html">{{ bb['bnvr'] }}</a> ({{ bb['day'] }})
       <br>Error: {{ bb['error'] }}
       </p>
     {% endfor -%}

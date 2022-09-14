@@ -6,6 +6,7 @@ import dnf
 import glob
 import json
 import os
+import pprint
 import shutil
 
 from jinja2 import Template
@@ -18,7 +19,7 @@ color_good = "#00ff00"
 color_bad = "#ff0000"
 color_not = "#d9ccd3"
 bz_page_size = 20
-
+this_day = datetime.datetime.now().strftime('%Y-%m-%d')
 # Lists/Dicts
 mainDict = {}
 mainList = []
@@ -69,7 +70,7 @@ def will_pkg_install(pkg, style, repo_info):
       base.resolve()
     except dnf.exceptions.DepsolveError as e:
       this_status['status'] = "fail"
-      this_status['error'] = e
+      this_status['error'] = str(e)
   return this_status
 
 # We need to iterate to get all the bugzilla bugs
@@ -87,7 +88,8 @@ def _iterate_bugzilla_query(querydata):
 
 with open('willit-config.json') as json_file:
   input_config = json.load(json_file)
-    
+
+## Repo Section
 for this_repo in input_config['repos']:
   #print('RepoName: ' + this_repo['RepoName'])
   #print('RepoURL: ' + this_repo['RepoURL'])
@@ -98,6 +100,11 @@ for this_repo in input_config['repos']:
   #print('OtherRepos: ' + str(this_repo['OtherRepos']))
   print("")
   print("Working On: " + this_repo['RepoName'])
+  try:
+    with open('output/' + this_repo['RepoName'] + '/status-repo.json', 'r') as jsonfile:
+        old_repo = json.load(jsonfile)
+  except IOError:
+    old_repo = {}
   this_overall = {}
   this_spkg_list = {}
   this_bugz_no_source = []
@@ -108,6 +115,10 @@ for this_repo in input_config['repos']:
   test_ci_bad_binary = []
   test_cb_bad_builds = []
   this_overall["reponame"] = this_repo['RepoName']
+  if old_repo["day"]:
+    this_overall["day"] = old_repo["day"]
+  else:
+    this_overall["day"] = this_day
   shutil.rmtree("/var/tmp/willit-dnf-cache-" + this_repo['RepoName'], ignore_errors=True)
   
   ## Gather a list of all binary packages in main repo.
@@ -137,9 +148,18 @@ for this_repo in input_config['repos']:
     else:
       this_source = {}
       this_source['sname'] = sourcename
+      try:
+        this_source['sname_day'] = old_repo["spkg_list"][sourcename]['sname_day']
+      except KeyError:
+        this_source['sname_day'] = this_day
       this_source['snvr'] = sourcenvr
+      try:
+        this_source['snvr_day'] = old_repo["spkg_list"][sourcename]['snvr_day']
+      except KeyError:
+        this_source['snvr_day'] = this_day
       this_source['binaries'] = [this_binary]
       this_source['bad_install'] = []
+      this_source['bad_installs'] = {}
       this_source['bad_build'] = []
       this_source['bugz'] = []
       this_source['bug_count'] = 0
@@ -264,11 +284,23 @@ for this_repo in input_config['repos']:
         bbinary['bname'] = bpkg.name
         bbinary['bnvr'] = binarynvr
         bbinary['sname'] = sourcename
+        try:
+          bbinary['day'] = old_repo["spkg_list"][sourcename]['bad_installs'][binarynvr]['day']
+        except KeyError:
+          bbinary['day'] = this_day
+        bbinary['day'] = this_day
         bbinary['error'] = bpkg_status['error']
         ci_bad_binary.append(bbinary)
         this_spkg_list[sourcename]['bad_install'].append(bbinary)
+        this_spkg_list[sourcename]['bad_installs'][binarynvr] = bbinary
+        #print(this_spkg_list)
+        #pprint.pprint(this_spkg_list)
         print("    Wont Install: " + binarynvr)
-        
+        #with open('output.txt','w') as output:
+        #    output.write(pprint.pformat(this_spkg_list))
+        #with open('output.json','w') as output:
+        #    json.dump(this_spkg_list, output)
+
     print("      Failed Installs: " + str(len(ci_bad_binary)))
     this_overall["ci_bnumber_good"] = this_overall["bnumber"] - len(ci_bad_binary)
     this_overall["ci_bnumber_bad"] = len(ci_bad_binary)
@@ -391,6 +423,8 @@ for this_repo in input_config['repos']:
     this_overall["test_cb_scolor"] = color_not
   
   # Work with data
+  this_overall["spkg_list"] = this_spkg_list
+  this_overall["test_spkg_list"] = test_this_spkg_list
   mainList.append(this_overall)
   Path("output/" + this_repo['RepoName'] + "/packages").mkdir(parents=True, exist_ok=True)
   Path("output/" + this_repo['RepoName'] + "/testing-packages").mkdir(parents=True, exist_ok=True)
@@ -426,6 +460,10 @@ for this_repo in input_config['repos']:
       w.write(bcvetmpl.render(
         this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
         repo=this_overall))
+  with open('output/' + this_repo['RepoName'] + '/status-repo.json', 'w') as w:
+    json.dump(this_overall, w)
+#  with open('output/' + this_repo['RepoName'] + '/status-packages.json', 'w') as w:
+#    json.dump(this_spkg_list, w)
   with open('templates/status-repo.html.jira') as f:
     tmpl = Template(f.read())
   with open('output/' + this_repo['RepoName'] + '/status-repo.html', 'w') as w:
@@ -449,8 +487,11 @@ for this_repo in input_config['repos']:
       this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
       repoName=this_repo['RepoName'],
       pkgDir="packages",
+      repo=this_overall,
       spkgList=this_spkg_list.values()))
   if this_repo['CheckTest'] == "True":
+#    with open('output/' + this_repo['RepoName'] + '/status-test-packages.json', 'w') as w:
+#      json.dump(test_this_spkg_list, w)
     with open('output/' + this_repo['RepoName'] + '/index-test-packages.html', 'w') as w:
       w.write(iptmpl.render(
         this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
@@ -464,30 +505,24 @@ for this_repo in input_config['repos']:
       w.write(ptmpl.render(
         this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
         repoName=this_repo['RepoName'],
-        pkgName=spkg['sname'],
-        sNVR=spkg['snvr'],
-        binaries=spkg['binaries'],
-        binstall=spkg['bad_install'],
-        bbuild=spkg['bad_build'],
-        bugz=spkg['bugz']))
+        spkg=spkg))
   if this_repo['CheckTest'] == "True":
     for spkg in test_this_spkg_list.values() :
       with open('output/' + this_repo['RepoName'] + '/testing-packages/' + spkg['sname'] + '.html', 'w') as w:
         w.write(ptmpl.render(
           this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
-          color_good=color_good,
-          color_bad=color_bad,
-          color_not=color_not,
           repoName=this_repo['RepoName'],
-          pkgName=spkg['sname'],
-          sNVR=spkg['snvr'],
-          binaries=spkg['binaries'],
-          binstall=spkg['bad_install'],
-          bbuild=spkg['bad_build']))
-    
+          spkg=spkg))
+
+
+## Overall Section
+Path("output").mkdir(parents=True, exist_ok=True)
+
+# Write out Overall json file
+with open('output/status-overall.json', 'w') as file:
+    json.dump(mainList, file)
 
 # Write out Overall Status Page
-Path("output").mkdir(parents=True, exist_ok=True)
 with open('templates/status-overall.html.jira') as f:
   tmpl = Template(f.read())
 with open('output/status-overall.html', 'w') as w:
