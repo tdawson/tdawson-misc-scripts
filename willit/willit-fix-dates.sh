@@ -1,7 +1,10 @@
 #!/bin/bash
+#
+# Run this script after you have ran willit.py once
+#   Then run willit-fix-dates.py
+#
 
-export REPOLIST="epel9"
-#export REPOLIST="epel7 epel8 epel9 epel8-next epel9-next"
+export REPOLIST="epel7 epel8 epel9 epel8-next epel9-next"
 
 # Get all the data from koji
 for repo in $REPOLIST

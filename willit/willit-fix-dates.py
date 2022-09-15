@@ -13,8 +13,7 @@ from pathlib import Path
 # Lists/Dicts
 mainDict = {}
 mainList = []
-repos=["epel9"]
-#repos=["epel7", "epel8", "epel9", "epel8-next", "epel9-next"]
+repos=["epel7", "epel8", "epel9", "epel8-next", "epel9-next"]
 
 ## Repo Section
 for this_repo in repos:
