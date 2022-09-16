@@ -61,3 +61,11 @@ done
 # After this is done, then make sure your repolist is setup on
 #  willit-fix-dates.py before running it.
 # ./willit-fix-dates.py
+
+# And then do the following
+#for repo in $REPOLIST
+#do
+#  echo
+#  echo "$repo"
+#  mv -f output/$repo/status-repo.fix-dates.json output/$repo/status-repo.json
+#done
