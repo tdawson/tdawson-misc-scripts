@@ -288,7 +288,6 @@ for this_repo in input_config['repos']:
           bbinary['day'] = old_repo["spkg_list"][sourcename]['bad_installs'][binarynvr]['day']
         except KeyError:
           bbinary['day'] = this_day
-        bbinary['day'] = this_day
         bbinary['error'] = bpkg_status['error']
         ci_bad_binary.append(bbinary)
         this_spkg_list[sourcename]['bad_install'].append(bbinary)
