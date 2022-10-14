@@ -24,6 +24,9 @@
         <td colspan="2">Total</td>
       {% if r['test_install'] == 'True' %}
         <td colspan="2"><a href="{{ r['reponame']  }}/status-wont-install.html">Install</a></td>
+        {% if r['IsNext'] == 'True' %}
+          <td><a href="{{ r['reponame']  }}/status-core-wont-install.html">Bad EPEL</a></td>
+        {% endif %}
       {% endif %}
       {% if r['test_build'] == 'True' %}
         <td colspan="4"><a href="{{ r['reponame']  }}/status-wont-build.html">Build</a></td>
@@ -40,6 +43,9 @@
         <td>Binary</td>
       {% if r['test_install'] == 'True' %}
         <td colspan="2" bgcolor="{{ r['ci_bcolor'] }}">Binary</td>
+        {% if r['IsNext'] == 'True' %}
+          <td>{{ r['version'] }}</td>
+        {% endif %}
       {% endif %}
       {% if r['test_build'] == 'True' %}
         <td colspan="2" bgcolor="{{ r['cb_scolor'] }}">Source</td>
@@ -58,6 +64,9 @@
       {% if r['test_install'] == 'True' %}
         <td>{{ r['ci_bnumber_good'] }}</td>
         <td>{{ r['ci_bnumber_bad'] }}</td>
+        {% if r['IsNext'] == 'True' %}
+          <td>{{ r['ci_core_bnumber_bad'] }}</td>
+        {% endif %}
       {% endif %}
       {% if r['test_build'] == 'True' %}
         <td>{{ r['cb_snumber_good'] }}</td>

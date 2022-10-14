@@ -37,7 +37,7 @@
     </table>
 
     <h2>Install Failures</h2>
-      {% for bi in spkg['bad_install'] -%}
+      {% for bi in spkg['bad_installs'] -%}
         <p>
           Package: <b>{{ bi['bnvr'] }}</b> ({{ bi['day'] }})
           <br>Error: {{ bi['error'] }}

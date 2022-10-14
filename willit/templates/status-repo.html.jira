@@ -23,7 +23,12 @@
         <td rowspan="3">{{ repo['reponame']  }}</td>
         <td colspan="2">Total</td>
         <td colspan="2">Install</td>
+      {% if repo['IsNext'] == 'True' %}
+        <td><a href="status-core-wont-install.html">Bad EPEL</a></td>
+      {% endif %}
+      {% if repo['test_build'] == 'True' %}
         <td colspan="2">Build</td>
+      {% endif %}
       {% if repo['test_bugz'] == 'True' %}
         <td colspan="2">Bugz</td>
       {% endif %}
@@ -35,7 +40,12 @@
         <td>Source</td>
         <td>Binary</td>
         <td colspan="2" bgcolor="{{ repo['ci_bcolor'] }}">Binary</td>
+      {% if repo['test_build'] == 'True' %}
         <td colspan="2" bgcolor="{{ repo['cb_scolor'] }}">Source</td>
+      {% endif %}
+      {% if repo['IsNext'] == 'True' %}
+        <td>{{ repo['version'] }}</td>
+      {% endif %}
       {% if repo['test_bugz'] == 'True' %}
         <td>Total</td>
         <td> CVE </td>
@@ -49,8 +59,13 @@
         <td>{{ repo['bnumber'] }}</td>
         <td>{{ repo['ci_bnumber_good'] }}</td>
         <td>{{ repo['ci_bnumber_bad'] }}</td>
+      {% if repo['IsNext'] == 'True' %}
+        <td>{{ repo['ci_core_bnumber_bad'] }}</td>
+      {% endif %}
+      {% if repo['test_build'] == 'True' %}
         <td>{{ repo['cb_snumber_good'] }}</td>
         <td>{{ repo['cb_snumber_bad'] }}</td>
+      {% endif %}
       {% if repo['test_bugz'] == 'True' %}
         <td>{{ repo['bugz_total'] }}</td>
         <td>{{ repo['bugz_total_cve'] }}</td>
@@ -64,6 +79,9 @@
     <br><a href="index-packages.html">{{ repo['reponame']  }} Packages</a> ({{ thisNum  }})
       {% if repo['test_install'] == 'True' %}
     <br><a href="status-wont-install.html">{{ repo['reponame']  }} Packages that will not install</a> ( {{ badInstallNum  }} )
+        {% if repo['IsNext'] == 'True' %}
+      <br><a href="status-core-wont-install.html">{{ repo['version']  }} packages that will not install on CentOS Stream</a> ( {{ repo['ci_core_bnumber_bad']  }} )
+        {% endif %}
       {% endif %}
       {% if repo['test_build'] == 'True' %}
     <br><a href="status-wont-build.html">{{ repo['reponame']  }} Packages that will not build</a> ( {{ badBuildNum  }} )
