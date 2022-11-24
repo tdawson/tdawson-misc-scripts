@@ -26,6 +26,7 @@
         <tr>
           <td><a href="https://bugzilla.redhat.com/show_bug.cgi?id={{ bug['id'] }}">{{ bug['id'] }}</a></td>
           <td>{{ bug['status'] }}</td>
+          <td>{{ bug['severity'] }}</td>
           <td>{{ bug['summary'] }}</td>
         </tr>
       {% endfor -%}
