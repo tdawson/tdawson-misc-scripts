@@ -205,6 +205,7 @@ for this_repo in input_config['repos']:
         this_bug['id'] = bug.id
         this_bug['status'] = bug.status
         this_bug['summary'] = bug.summary
+        this_bug['severity'] = bug.severity
         if bug.component in this_spkg_list:
           this_spkg_list[bug.component]['bugz'].append(this_bug)
           this_spkg_list[bug.component]['bug_count'] += 1
