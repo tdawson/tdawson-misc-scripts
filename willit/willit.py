@@ -100,35 +100,51 @@ for this_repo in input_config['repos']:
   #print('OtherRepos: ' + str(this_repo['OtherRepos']))
   print("")
   print("Working On: " + this_repo['RepoName'])
+  if this_repo['RepoName']=="epel9-next" or this_repo['RepoName']=="epel9":
+    version = "epel9"
+  elif this_repo['RepoName']=="epel8-next" or this_repo['RepoName']=="epel8":
+    version = "epel8"
+  elif this_repo['RepoName']=="epel7":
+    version = "epel7"
+  else:
+    version = None
+    print("    Repo Name not in list, not checking bugz even if it is set")
+    this_overall["test_bugz"] = "False"
   try:
     with open('output/' + this_repo['RepoName'] + '/status-repo.json', 'r') as jsonfile:
         old_repo = json.load(jsonfile)
   except IOError:
     old_repo = {}
+  try:
+    with open('output/' + version + '/status-repo.json', 'r') as jsonfile:
+        old_core_repo = json.load(jsonfile)
+  except IOError:
+    old_core_repo = {}
   this_overall = {}
   this_spkg_list = {}
+  core_spkg_list = {}
   this_bugz_no_source = []
   this_bugz_cve = []
   ci_bad_binary = []
+  ci_core_bad_binary = []
   cb_bad_builds = []
   test_this_spkg_list = {}
   test_ci_bad_binary = []
   test_cb_bad_builds = []
   this_overall["reponame"] = this_repo['RepoName']
+  this_overall["version"] = version
   try:
     this_overall["day"] = old_repo["day"]
   except KeyError:
     this_overall["day"] = this_day
   shutil.rmtree("/var/tmp/willit-dnf-cache-" + this_repo['RepoName'], ignore_errors=True)
-  
+
   ## Gather a list of all binary packages in main repo.
   print("  Gathering binary packages in repo ... ", end='')
   with dnf.Base() as base:
     conf = base.conf
     conf.cachedir = "/var/tmp/willit-dnf-cache-" + this_repo['RepoName']
     base.repos.add_new_repo(this_repo['RepoName'], conf, baseurl=[this_repo['RepoURL']])
-    if this_repo['IsNext'] == "True":
-      base.repos.add_new_repo(this_repo['RepoName'] + "core", conf, baseurl=[this_repo['CoreRepoURL']])
     base.fill_sack(load_system_repo=False)
     query = base.sack.query().available().latest()
     this_bpkg_list = query.run()
@@ -158,7 +174,6 @@ for this_repo in input_config['repos']:
       except KeyError:
         this_source['snvr_day'] = this_day
       this_source['binaries'] = [this_binary]
-      this_source['bad_install'] = []
       this_source['bad_installs'] = {}
       this_source['bad_build'] = []
       this_source['bugz'] = []
@@ -176,16 +191,6 @@ for this_repo in input_config['repos']:
     print("  Starting Bug Checking")
     
     product="Fedora EPEL"
-    if this_repo['RepoName']=="epel9-next" or this_repo['RepoName']=="epel9":
-      version = "epel9"
-    elif this_repo['RepoName']=="epel8-next" or this_repo['RepoName']=="epel8":
-      version = "epel8"
-    elif this_repo['RepoName']=="epel7":
-      version = "epel7"
-    else:
-      version = None
-      print("    Repo Name not in list, not checking bugz")
-      this_overall["test_bugz"] = "False"
     
     if version:
       URL = "bugzilla.redhat.com"
@@ -290,15 +295,8 @@ for this_repo in input_config['repos']:
           bbinary['day'] = this_day
         bbinary['error'] = bpkg_status['error']
         ci_bad_binary.append(bbinary)
-        this_spkg_list[sourcename]['bad_install'].append(bbinary)
         this_spkg_list[sourcename]['bad_installs'][binarynvr] = bbinary
-        #print(this_spkg_list)
-        #pprint.pprint(this_spkg_list)
         print("    Wont Install: " + binarynvr)
-        #with open('output.txt','w') as output:
-        #    output.write(pprint.pformat(this_spkg_list))
-        #with open('output.json','w') as output:
-        #    json.dump(this_spkg_list, output)
 
     print("      Failed Installs: " + str(len(ci_bad_binary)))
     this_overall["ci_bnumber_good"] = this_overall["bnumber"] - len(ci_bad_binary)
@@ -307,11 +305,71 @@ for this_repo in input_config['repos']:
       this_overall["ci_bcolor"] = color_bad
     else:
       this_overall["ci_bcolor"] = color_good
+
+    # If we are a next repo
+    #  check if any core packages fail to install on next
+    if this_repo['IsNext'] == "True":
+      this_overall["IsNext"] = "True"
+      print("  Starting CheckInstall of Core Packages")
+      for spkg, sinfo in old_core_repo["spkg_list"].items():
+        next_spkg_list = this_spkg_list.keys()
+        if spkg not in next_spkg_list:
+          for bpkg in sinfo['binaries']:
+            with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:
+              bpkg_status = executor.submit(will_pkg_install, bpkg['bname'], "main", this_repo).result()
+            #bpkg_status = will_pkg_install(bpkg.name, "main", this_repo)
+            if bpkg_status['status'] == "fail":
+              binarynvr = bpkg['bnvr']
+              sourcenvr = sinfo['snvr']
+              sourcename = spkg
+              print("    Wont Install: " + binarynvr)
+              bbinary = {}
+              bbinary['bname'] = bpkg['bname']
+              bbinary['bnvr'] = binarynvr
+              bbinary['sname'] = sourcename
+              bbinary['error'] = bpkg_status['error']
+              try:
+                bbinary['day'] = old_core_repo["spkg_list"][sourcename]['bad_installs'][binarynvr]['day']
+                print("      Fails on " + version)
+              except KeyError:
+                try:
+                  bbinary['day'] = old_repo["core"][sourcename]['bad_installs'][binarynvr]['day']
+                except KeyError:
+                  bbinary['day'] = this_day
+                ci_core_bad_binary.append(bbinary)
+                if sourcename in core_spkg_list:
+                  core_spkg_list[sourcename]['bad_installs'][binarynvr] = bbinary
+                else:
+                  this_source = {}
+                  this_source['bad_installs'] = {}
+                  this_source['sname'] = sourcename
+                  this_source['snvr'] = sourcenvr
+                  this_source['binaries'] = old_core_repo["spkg_list"][sourcename]['binaries']
+                  this_source['bad_installs'][binarynvr] = bbinary
+                  core_spkg_list[sourcename] = this_source
+
+      print("      Failed Core Installs: " + str(len(ci_core_bad_binary)))
+      this_overall["core"] = core_spkg_list
+      this_overall["ci_core_bnumber_good"] = old_core_repo["bnumber"] - len(ci_bad_binary) - len(ci_core_bad_binary)
+      this_overall["ci_core_bnumber_bad"] = len(ci_core_bad_binary)
+      if len(ci_core_bad_binary) > 0:
+        this_overall["ci_core_bcolor"] = color_bad
+      else:
+        this_overall["ci_core_bcolor"] = color_good
+    else:
+      this_overall["IsNext"] = "False"
+      this_overall["ci_core_bnumber_good"] = "--"
+      this_overall["ci_core_bnumber_bad"] = "--"
+      this_overall["ci_core_bcolor"] = color_not
   else:
     this_overall["test_install"] = "False"
+    this_overall["IsNext"] = "False"
     this_overall["ci_bnumber_good"] = "--"
     this_overall["ci_bnumber_bad"] = "--"
     this_overall["ci_bcolor"] = color_not
+    this_overall["ci_core_bnumber_good"] = "--"
+    this_overall["ci_core_bnumber_bad"] = "--"
+    this_overall["ci_core_bcolor"] = color_not
 
   # Will It Build
   if this_repo['CheckBuild'] == "True":
@@ -356,7 +414,7 @@ for this_repo in input_config['repos']:
         this_source['sname'] = sourcename
         this_source['snvr'] = sourcenvr
         this_source['binaries'] = [this_binary]
-        this_source['bad_install'] = []
+        this_source['bad_installs'] = {}
         this_source['bad_build'] = []
         this_source['bugz'] = []
         this_source['bug_count'] = 0
@@ -385,7 +443,7 @@ for this_repo in input_config['repos']:
           bbinary['sname'] = sourcename
           bbinary['error'] = bpkg_status['error']
           test_ci_bad_binary.append(bbinary)
-          test_this_spkg_list[sourcename]['bad_install'].append(bbinary)
+          test_this_spkg_list[sourcename]['bad_installs'][binarynvr] = bbinary
           print("    Wont Install: " + binarynvr)
           
       print("      Failed Installs: " + str(len(test_ci_bad_binary)))
@@ -439,6 +497,25 @@ for this_repo in input_config['repos']:
       testBadInstall=test_ci_bad_binary,
       testBadInstallNum=len(test_ci_bad_binary),
       repo=this_overall))
+  if this_repo['IsNext'] == "True" and this_repo['CheckInstall'] == "True":
+    with open('templates/status-core-wont-install.html.jira') as f:
+      wictmpl = Template(f.read())
+    with open('output/' + this_repo['RepoName'] + '/status-core-wont-install.html', 'w') as w:
+      w.write(wictmpl.render(
+        this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
+        badInstall=ci_core_bad_binary,
+        badInstallNum=len(ci_core_bad_binary),
+        version=version,
+        repo=this_overall))
+    with open('templates/status-core-package.html.jira') as f:
+      pctmpl = Template(f.read())
+    for spkg in core_spkg_list.values() :
+      with open('output/' + this_repo['RepoName'] + '/packages/' + spkg['sname'] + '.html', 'w') as w:
+        w.write(pctmpl.render(
+          this_date=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
+          repoName=this_repo['RepoName'],
+          version=version,
+          spkg=spkg))
   if this_overall["test_duplicates"] == "True":
     with open('templates/status-duplicates.html.jira') as f:
       bnstmpl = Template(f.read())

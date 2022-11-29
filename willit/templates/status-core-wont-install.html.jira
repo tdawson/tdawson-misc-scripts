@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Will It Install {{ repo['version']  }} on CentOS Stream</title>
+    <title>Will It Install {{ version }} on CentOS Stream</title>
     <style>
       table {
         border-spacing: 0;
@@ -12,15 +12,15 @@
     </style>
   </head>
   <body>
-  <h1>Will It Install on {{ repo['version']  }} on CentOS Stream</h1>
+  <h1>Will It Install on {{ version }} on CentOS Stream</h1>
     <p>
       <a href="status-repo.html">Repo Status</a> - 
       <a href="../status-overall.html">Overall Status</a>
       <br>Page updated: {{ this_date }}
     </p>
-  <h2>{{ repo['version']  }}</h2>
+  <h2>{{ version }}</h2>
 
-    <h3>Packages that will not install on CentOS STream</h3>
+    <h3>Packages that will not install on CentOS Stream</h3>
     <ul>
       {% for bb in badInstall -%}
         <li><a href="packages/{{ bb['sname'] }}.html">{{ bb['bnvr'] }}</a> ({{ bb['day'] }})</li>

@@ -12,7 +12,7 @@
     </p>
 
     <p>
-      Source NVR: <b>{{ spkg['snvr']  }}</b> ({{ spkg['snvr_day'] }})
+      Source NVR: <b>{{ spkg['snvr']  }}</b>
     </p>
 
     <h2>Install Failures on CentOS Stream</h2>
