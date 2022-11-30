@@ -1,0 +1,17 @@
+# Do the initial big cleanup
+./next-cleanup-check.sh
+koji untag-build epel8-next $(cat untag.list.epel8-next.older.all)
+koji untag-build epel8-next $(cat untag.list.epel8-next.same.tdawson)
+koji untag-build epel9-next $(cat untag.list.epel9-next.older.all)
+koji untag-build epel9-next $(cat untag.list.epel9-next.same.tdawson)
+
+# Move everything to an archive, and then run it again to see what's left.
+mkdir $(date +%Y-%m-%d)
+mv comp* epel* untag* $(date +%Y-%m-%d)
+./next-cleanup-check.sh
+cat comp.epel8.same
+cat comp.epel9.same
+
+# Figure out if the same packages should be removed or kept.
+# This can be something like sending them an email, or using your best judgement
+# At the very least, ensure that the regular epel version installs on centos stream before removing it.
