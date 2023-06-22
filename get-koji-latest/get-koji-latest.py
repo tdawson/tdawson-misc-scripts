@@ -14,10 +14,10 @@ import koji
 import json
 import os
 
-tag="c9s-pending"
+# tag="c9s-pending"
 # tag="eln"
-kojihub="https://kojihub.stream.centos.org/kojihub"
-# kojihub="https://koji.fedoraproject.org/kojihub"
+# kojihub="https://kojihub.stream.centos.org/kojihub"
+kojihub="https://koji.fedoraproject.org/kojihub"
 current_packagelist="pkglist.json"
 old_packagelist="old.pkglist.json"
 current_packagelist_text="pkglist.nvr-hash.txt"
