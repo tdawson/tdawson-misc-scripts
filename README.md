@@ -9,3 +9,11 @@ Plus, if you want to see what I did, go for it.
 
 NOTE: NOT FOR PRODUCTION USE - ANY OF THESE
 THESE ARE FOR PROTOTYPING VARIOUS THINGS FAST
+
+## will-it
+
+willit and will-it-install have evolved into their own repo.
+
+Fine them at
+
+https://github.com/tdawson/willit
