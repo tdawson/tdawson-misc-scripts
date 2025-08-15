@@ -16,7 +16,6 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 # BINARY VARIABLES
 VERBOSE="FALSE"
-DO_DEPS="TRUE"
 NEW_ORDER="TRUE"
 DO_ORDER="TRUE"
 # LIST VARIABLES
@@ -35,8 +34,6 @@ usage() {
   echo "  build order based on dependencies." >&2
   echo >&2
   echo "Options:" >&2
-  echo "  --no-new-deps" >&2
-  echo "    Do not redo the deps" >&2
   echo "  --no-new-order" >&2
   echo "    Do not redo the order" >&2
   echo "  --no-order" >&2
@@ -67,9 +64,6 @@ do
         usage
         exit 2	
       fi
-    ;;
-    --no-new-deps)
-      export DO_DEPS="FALSE"
     ;;
     --no-new-order)
       export NEW_ORDER="FALSE"
@@ -108,10 +102,7 @@ fi
 if [ "${VERBOSE}" == "TRUE" ] ; then
   echo "SETUP"
 fi
-mkdir -p order deps
-if [ "${DO_DEPS}" == "TRUE" ] ; then
-  rm -f deps/*
-fi
+mkdir -p order
 if [ "${NEW_ORDER}" == "TRUE" ] ; then
   rm -f order/*
 fi
@@ -119,19 +110,6 @@ for package in $(cat ${DATAFILE})
 do
   if [ "${VERBOSE}" == "TRUE" ] ; then
     echo "  ${package}"
-  fi
-  if [ "${DO_DEPS}" == "TRUE" ] ; then
-    source_requires="$(dnf repoquery --srpm --qf="%{name}" --requires --resolve ${package} 2>/dev/null | grep -v 'Subscription Management')"
-		if [ "${source_requires}" == "" ] ; then
-		  touch deps/${package}
-		else
-		  # Find - the name of - the source rpms of - the packages needed to build - the source rpm of ${package}
-		  dnf repoquery --srpm --qf="%{name}" list  $(dnf repoquery  --srpm --qf="%{sourcerpm}" --requires --resolve ${package} 2>/dev/null | grep -v 'Subscription Management' | sed "s/.src.rpm$//") 2>/dev/null | grep -v 'Subscription Management' >> deps/${package} 2>/dev/null
-      # Find - the name of - the source rpms of - the packages needed to install - the packages needed to build - the source rpm of ${package}
-		  dnf repoquery --srpm --qf="%{name}" list  $(dnf repoquery --qf="%{sourcerpm}" --requires --resolve ${source_requires} 2>/dev/null | grep -v 'Subscription Management' | sed "s/.src.rpm$//") 2>/dev/null | grep -v 'Subscription Management' >> deps/${package} 2>/dev/null
-		  # sort and remove duplicates
-		  sort -u -o deps/${package} deps/${package}
-		fi
   fi
   if [ "${NEW_ORDER}" == "TRUE" ] ; then
     echo "${BUFFER}" >> order/${package}
