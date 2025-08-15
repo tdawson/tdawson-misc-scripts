@@ -16,6 +16,7 @@ import os
 
 # tag="c9s-pending"
 # tag="eln"
+tag = "f42"
 # kojihub="https://kojihub.stream.centos.org/kojihub"
 kojihub="https://koji.fedoraproject.org/kojihub"
 current_packagelist="pkglist.json"
